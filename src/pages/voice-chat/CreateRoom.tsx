@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { VoiceChatService } from "@/services/VoiceChatService";
 import { AuthService } from "@/services/AuthService";
 import { showError, showSuccess } from "@/utils/toast";
+import ChatLayout from "@/components/chat/ChatLayout";
 
 const CreateRoom = () => {
   const nav = useNavigate();
@@ -13,31 +14,33 @@ const CreateRoom = () => {
   const [isPrivate, setIsPrivate] = useState(false);
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader><CardTitle>Create room</CardTitle></CardHeader>
-        <CardContent className="space-y-3">
-          <Input placeholder="Room name" value={name} onChange={e => setName(e.target.value)} />
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={isPrivate} onChange={e => setIsPrivate(e.target.checked)} />
-            Private room
-          </label>
-          <Button
-            className="w-full"
-            onClick={() => {
-              const user = AuthService.getCurrentUser();
-              if (!user) { showError("Please login first"); return; }
-              if (!name.trim()) { showError("Room name is required"); return; }
-              const room = VoiceChatService.createRoom(name.trim(), isPrivate, user.id);
-              showSuccess("Room created");
-              nav(`/voice/rooms/${room.id}`);
-            }}
-          >
-            Create
-          </Button>
-        </CardContent>
-      </Card>
-    </div>
+    <ChatLayout title="Create Room">
+      <div className="p-6 max-w-md mx-auto">
+        <Card className="w-full">
+          <CardHeader><CardTitle>Create room</CardTitle></CardHeader>
+          <CardContent className="space-y-3">
+            <Input placeholder="Room name" value={name} onChange={e => setName(e.target.value)} />
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={isPrivate} onChange={e => setIsPrivate(e.target.checked)} />
+              Private room
+            </label>
+            <Button
+              className="w-full"
+              onClick={() => {
+                const user = AuthService.getCurrentUser();
+                if (!user) { showError("Please login first"); return; }
+                if (!name.trim()) { showError("Room name is required"); return; }
+                const room = VoiceChatService.createRoom(name.trim(), isPrivate, user.id);
+                showSuccess("Room created");
+                nav(`/voice/rooms/${room.id}`);
+              }}
+            >
+              Create
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    </ChatLayout>
   );
 };
 
