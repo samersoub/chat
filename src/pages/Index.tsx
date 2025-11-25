@@ -71,6 +71,15 @@ const Index = () => {
               <Button asChild variant="outline"><Link to="/earnings">Open</Link></Button>
             </CardContent>
           </Card>
+          <Card>
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <div className="font-semibold">Purchase Coins</div>
+                <div className="text-sm text-muted-foreground">Buy starter, premium, or elite coin packs</div>
+              </div>
+              <Button asChild variant="outline"><Link to="/coins">Open</Link></Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
       <BottomTab />

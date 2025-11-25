@@ -34,6 +34,7 @@ import PrivateCall from "./pages/matching/PrivateCall";
 import RateMatch from "./pages/matching/RateMatch";
 import Earnings from "./pages/finance/Earnings";
 import Withdrawal from "./pages/finance/Withdrawal";
+import CoinPurchase from "./pages/finance/CoinPurchase";
 
 const queryClient = new QueryClient();
 
@@ -67,6 +68,8 @@ const App = () => (
             {/* Earnings & Withdrawal */}
             <Route path="/earnings" element={<Earnings />} />
             <Route path="/withdrawal" element={<Withdrawal />} />
+            {/* Coin purchase */}
+            <Route path="/coins" element={<CoinPurchase />} />
             {/* Agency */}
             <Route path="/agency/host" element={<HostAgency />} />
             <Route path="/agency/recharge" element={<RechargeAgency />} />
