@@ -5,6 +5,9 @@ import ChatLayout from "@/components/chat/ChatLayout";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { EconomyService } from "@/services/EconomyService";
+import { GiftService } from "@/services/GiftService";
+import GiftAnimation from "@/components/gifts/GiftAnimation";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { showSuccess, showError } from "@/utils/toast";
 import AvatarWithFrame from "@/components/profile/AvatarWithFrame";
 
@@ -26,6 +29,9 @@ const entrances = [
 const Store: React.FC = () => {
   const [bal, setBal] = useState(EconomyService.getBalance());
   const inv = EconomyService.getInventory();
+  const categories = GiftService.getCategories();
+  const [activeCat, setActiveCat] = useState<string>("popular");
+  const [previewId, setPreviewId] = useState<"rose" | "car" | "dragon" | null>(null);
 
   return (
     <ChatLayout title="Store">
@@ -143,6 +149,58 @@ const Store: React.FC = () => {
                 </Button>
               </div>
             ))}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader><CardTitle>Gift Store</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            {previewId && (
+              <div className="rounded-lg border p-3">
+                <div className="text-sm font-semibold mb-2">Preview</div>
+                <div className="h-48">
+                  <GiftAnimation type={previewId} />
+                </div>
+                <div className="mt-2">
+                  <Button variant="outline" onClick={() => setPreviewId(null)}>Close Preview</Button>
+                </div>
+              </div>
+            )}
+
+            <Tabs value={activeCat} onValueChange={(v) => setActiveCat(v)}>
+              <TabsList className="w-full justify-start flex-wrap">
+                {categories.map(c => (
+                  <TabsTrigger key={c.key} value={c.key}>{c.label}</TabsTrigger>
+                ))}
+              </TabsList>
+              {categories.map(c => (
+                <TabsContent key={c.key} value={c.key} className="mt-3">
+                  <div className="grid grid-cols-2 gap-4">
+                    {GiftService.getGiftsByCategory(c.key).map(g => (
+                      <div key={g.id} className="rounded-lg border p-3">
+                        <div className="font-semibold">{g.name}</div>
+                        <div className="text-sm text-muted-foreground">{g.price} coins</div>
+                        <div className="flex gap-2 mt-2">
+                          <Button
+                            variant="outline"
+                            onClick={() => setPreviewId(g.id)}
+                          >
+                            Preview
+                          </Button>
+                          <Button
+                            onClick={() => {
+                              showError("Send gifts from inside a voice room.");
+                            }}
+                          >
+                            Send
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </TabsContent>
+              ))}
+            </Tabs>
           </CardContent>
         </Card>
       </div>

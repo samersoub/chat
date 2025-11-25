@@ -13,6 +13,7 @@ import RoomsGrid from "@/components/discover/RoomsGrid";
 import { VoiceChatService } from "@/services/VoiceChatService";
 import BottomTab from "@/components/mobile/BottomTab";
 import { useLocale } from "@/contexts";
+import GiftLeaderboard from "@/components/gifts/GiftLeaderboard";
 
 const Index = () => {
   const rooms = useMemo(() => VoiceChatService.listRooms(), []);
@@ -46,6 +47,9 @@ const Index = () => {
             <RoomsGrid rooms={rooms} />
           </TabsContent>
         </Tabs>
+
+        {/* Gift Leaderboard */}
+        <GiftLeaderboard />
       </div>
       <BottomTab />
     </ChatLayout>
