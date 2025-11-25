@@ -1,64 +1,89 @@
-import { useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { WebRTCService } from "@/services/WebRTCService";
-import { AudioManager } from "@/utils/AudioManager";
-import { PermissionManager } from "@/utils/PermissionManager";
-import { showError, showSuccess } from "@/utils/toast";
-import ChatLayout from "@/components/chat/ChatLayout";
+import SeatGrid from "@/components/voice/SeatGrid";
+import ChatOverlay from "@/components/voice/ChatOverlay";
+import ControlBar from "@/components/voice/ControlBar";
+import { showSuccess } from "@/utils/toast";
 
 const VoiceChat = () => {
   const { id } = useParams<{ id: string }>();
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const [active, setActive] = useState(false);
-  const rtc = useRef(new WebRTCService()).current;
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    return () => {
-      rtc.stopMic();
-    };
-  }, [rtc]);
+  const [micOn, setMicOn] = useState(false);
+  const seats = useMemo(
+    () => [
+      { id: "1", name: "Host", imageUrl: "/placeholder.svg", speaking: true, muted: false },
+      { id: "2", name: "Maya", imageUrl: undefined, speaking: false, muted: false },
+      { id: "3", name: "Omar", imageUrl: undefined, speaking: false, muted: true },
+      { id: "4", name: "Liu", imageUrl: undefined, speaking: false, muted: false },
+      { id: "5", name: "Sara", imageUrl: undefined, speaking: false, muted: false },
+      { id: "6", name: "Ali", imageUrl: undefined, speaking: true, muted: false },
+      { id: "7", name: "Jin", imageUrl: undefined, speaking: false, muted: false },
+      { id: "8", name: "Nora", imageUrl: undefined, speaking: false, muted: false },
+    ],
+    []
+  );
 
-  const start = async () => {
-    const ok = await PermissionManager.ensureMicPermission();
-    if (!ok) { showError("Microphone permission denied"); return; }
-    const stream = await rtc.getMicStream();
-    if (audioRef.current) {
-      AudioManager.attachStream(audioRef.current, stream);
-      setActive(true);
-      showSuccess("Microphone started");
-    }
-  };
-
-  const stop = () => {
-    rtc.stopMic();
-    if (audioRef.current) {
-      AudioManager.detach(audioRef.current);
-    }
-    setActive(false);
-  };
+  const messages = useMemo(
+    () => [
+      { id: "m1", user: "Host", text: "Welcome to the room!" },
+      { id: "m2", user: "Maya", text: "Hi everyone 👋" },
+      { id: "m3", user: "Omar", text: "Muted for a sec." },
+      { id: "m4", user: "Ali", text: "Love this song 🔥" },
+    ],
+    []
+  );
 
   return (
-    <ChatLayout title={id ? `Room ${id}` : "Voice Chat"}>
-      <div className="mx-auto max-w-xl p-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>Voice Chat {id ? `— Room ${id}` : ""}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="text-sm text-muted-foreground">
-              This demo starts your microphone locally. To enable real calls, we'll add signaling next.
-            </div>
-            <div className="flex gap-2">
-              <Button onClick={start} disabled={active}>Start mic</Button>
-              <Button variant="outline" onClick={stop} disabled={!active}>Stop mic</Button>
-            </div>
-            <audio ref={audioRef} autoPlay className="w-full mt-2" />
-          </CardContent>
-        </Card>
+    <div className="relative min-h-screen w-full overflow-hidden">
+      {/* Animated mystical purple gradient background */}
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#2e026d] via-[#6d28d9] to-[#9333ea]" />
+        <div className="absolute -top-20 -left-20 h-64 w-64 bg-fuchsia-500/20 blur-3xl rounded-full animate-pulse" />
+        <div className="absolute bottom-0 right-0 h-80 w-80 bg-indigo-500/20 blur-3xl rounded-full animate-pulse" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.08),transparent_60%)]" />
       </div>
-    </ChatLayout>
+
+      {/* Header */}
+      <div className="absolute top-4 left-4 flex items-center gap-3">
+        <div className="text-white">
+          <div className="text-sm font-semibold">Room: {id ?? "—"}</div>
+          <div className="text-xs text-white/80">ID: {id ?? "—"}</div>
+        </div>
+        <Button
+          variant="outline"
+          className="bg-white/10 text-white border-white/20 hover:bg-white/20"
+          onClick={() => navigate(-1)}
+        >
+          Leave
+        </Button>
+      </div>
+
+      {/* Center seating grid */}
+      <div className="flex items-center justify-center pt-20 pb-32 px-6">
+        <div className="w-full max-w-4xl">
+          <SeatGrid seats={seats} />
+        </div>
+      </div>
+
+      {/* Bottom-left chat overlay */}
+      <div className="absolute left-4 bottom-24">
+        <ChatOverlay messages={messages} />
+      </div>
+
+      {/* Bottom control bar */}
+      <ControlBar
+        micOn={micOn}
+        onToggleMic={() => {
+          setMicOn((v) => !v);
+          showSuccess(!micOn ? "Microphone On" : "Microphone Off");
+        }}
+        onOpenChat={() => showSuccess("Open chat")}
+        onSendGift={() => showSuccess("Gift sent")}
+        onEmoji={() => showSuccess("Emoji")}
+      />
+    </div>
   );
 };
 

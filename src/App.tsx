@@ -16,6 +16,11 @@ import Contacts from "./pages/contacts/Contacts";
 import InviteFriends from "./pages/contacts/InviteFriends";
 import Profile from "./pages/profile/Profile";
 import Settings from "./pages/profile/Settings";
+import AdminDashboard from "./pages/admin/Dashboard";
+import AdminUsers from "./pages/admin/Users";
+import AdminRooms from "./pages/admin/Rooms";
+import AdminReports from "./pages/admin/Reports";
+import AdminSettings from "./pages/admin/Settings";
 
 const queryClient = new QueryClient();
 
@@ -27,15 +32,25 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          {/* Admin Panel */}
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/users" element={<AdminUsers />} />
+          <Route path="/admin/rooms" element={<AdminRooms />} />
+          <Route path="/admin/reports" element={<AdminReports />} />
+          <Route path="/admin/settings" element={<AdminSettings />} />
+          {/* Auth */}
           <Route path="/auth/login" element={<Login />} />
           <Route path="/auth/register" element={<Register />} />
           <Route path="/auth/verify" element={<PhoneVerification />} />
+          {/* Voice Chat */}
           <Route path="/voice/rooms" element={<RoomList />} />
           <Route path="/voice/create" element={<CreateRoom />} />
           <Route path="/voice/rooms/:id" element={<RoomDetails />} />
           <Route path="/voice/rooms/:id/join" element={<VoiceChat />} />
+          {/* Contacts */}
           <Route path="/contacts" element={<Contacts />} />
           <Route path="/contacts/invite" element={<InviteFriends />} />
+          {/* Profile */}
           <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<Settings />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
