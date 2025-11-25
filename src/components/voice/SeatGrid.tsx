@@ -9,6 +9,7 @@ type GridSeat = {
   imageUrl?: string;
   speaking?: boolean;
   muted?: boolean;
+  locked?: boolean;
 };
 
 const SeatGrid: React.FC<{ seats: GridSeat[] }> = ({ seats }) => {
@@ -20,13 +21,14 @@ const SeatGrid: React.FC<{ seats: GridSeat[] }> = ({ seats }) => {
       imageUrl: undefined,
       speaking: false,
       muted: false,
+      locked: false,
     });
   }
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8">
       {padded.slice(0, 8).map((s) => (
-        <Seat key={s.id} name={s.name} imageUrl={s.imageUrl} speaking={s.speaking} muted={s.muted} />
+        <Seat key={s.id} name={s.name} imageUrl={s.imageUrl} speaking={s.speaking} muted={s.muted} locked={s.locked} />
       ))}
     </div>
   );

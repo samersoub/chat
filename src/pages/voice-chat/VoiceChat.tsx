@@ -10,6 +10,10 @@ import GiftAnimation from "@/components/gifts/GiftAnimation";
 import { showSuccess } from "@/utils/toast";
 import { WebRTCService } from "@/services/WebRTCService";
 import { AudioManager } from "@/utils/AudioManager";
+import { MicService } from "@/services/MicService";
+import { RecordingService } from "@/services/RecordingService";
+import { AuthService } from "@/services/AuthService";
+import MicManager from "@/components/voice/MicManager";
 
 const VoiceChat = () => {
   const { id } = useParams<{ id: string }>();
@@ -23,18 +27,24 @@ const VoiceChat = () => {
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
   const rtcRef = React.useRef<WebRTCService | null>(null);
 
-  const seats = useMemo(
-    () => [
-      { id: "1", name: "Host", imageUrl: "/placeholder.svg", speaking: true, muted: false },
-      { id: "2", name: "Maya", imageUrl: undefined, speaking: false, muted: false },
-      { id: "3", name: "Omar", imageUrl: undefined, speaking: false, muted: true },
-      { id: "4", name: "Liu", imageUrl: undefined, speaking: false, muted: false },
-      { id: "5", name: "Sara", imageUrl: undefined, speaking: false, muted: false },
-      { id: "6", name: "Ali", imageUrl: undefined, speaking: true, muted: false },
-      { id: "7", name: "Jin", imageUrl: undefined, speaking: false, muted: false },
-      { id: "8", name: "Nora", imageUrl: undefined, speaking: false, muted: false },
-    ],
-    []
+  const user = AuthService.getCurrentUser();
+  const roomSeats = React.useMemo(() => (id ? MicService.getSeats(id) : []), [id]);
+  const [seatsState, setSeatsState] = useState(roomSeats);
+  const isHost = false; // Host detection can be wired with VoiceChatService.getRoom(id)?.hostId === user?.id
+
+  const seats = React.useMemo(
+    () =>
+      (seatsState.length ? seatsState : Array.from({ length: 8 }, (_, i) => ({ index: i, locked: false, muted: false, speaking: false } as any))).map(
+        (s, i) => ({
+          id: `${i}`,
+          name: s.userId ? s.name || "User" : s.locked ? "Locked" : "Empty",
+          imageUrl: undefined,
+          speaking: !!s.speaking,
+          muted: !!s.muted,
+          locked: !!s.locked,
+        })
+      ),
+    [seatsState]
   );
 
   const messages = useMemo(
@@ -90,16 +100,77 @@ const VoiceChat = () => {
         >
           Leave
         </Button>
+        <Button
+          variant="outline"
+          className="bg-white/10 text-white border-white/20 hover:bg-white/20"
+          onClick={() => {
+            try {
+              if (!id) return;
+              const updated = MicService.putOnMic(id, user?.id || "you", user?.name || "You");
+              setSeatsState([...updated]);
+              showSuccess("You took a mic");
+            } catch (e: any) {
+              showSuccess(e.message || "Unable to take mic");
+            }
+          }}
+        >
+          Take Mic
+        </Button>
+        <Button
+          variant="outline"
+          className="bg-white/10 text-white border-white/20 hover:bg-white/20"
+          onClick={() => {
+            try {
+              if (!id) return;
+              const updated = MicService.leaveMic(id, user?.id || "you");
+              setSeatsState([...updated]);
+              setMicOn(false);
+              showSuccess("Left mic");
+            } catch (e: any) {
+              showSuccess(e.message || "Unable to leave mic");
+            }
+          }}
+        >
+          Leave Mic
+        </Button>
       </div>
 
-      {/* Wallpaper switcher */}
-      <div className="absolute top-4 right-4">
+      {/* Wallpaper switcher + recording controls */}
+      <div className="absolute top-4 right-4 flex items-center gap-2">
         <Button
           variant="outline"
           className="bg-white/10 text-white border-white/20 hover:bg-white/20"
           onClick={() => setWallpaper(wallpaper === "royal" ? "nebula" : wallpaper === "nebula" ? "galaxy" : "royal")}
         >
           Wallpaper
+        </Button>
+        <Button
+          variant="outline"
+          className="bg-white/10 text-white border-white/20 hover:bg-white/20"
+          onClick={() => {
+            if (!id) return;
+            const status = RecordingService.status(id);
+            if (!status.active) {
+              RecordingService.start(id, "companion");
+              showSuccess("Recording started (companion)");
+            } else {
+              RecordingService.stop(id);
+              showSuccess("Recording stopped");
+            }
+          }}
+        >
+          Toggle Recording
+        </Button>
+        <Button
+          variant="outline"
+          className="bg-white/10 text-white border-white/20 hover:bg-white/20"
+          onClick={() => {
+            if (!id) return;
+            RecordingService.submitForReview(id);
+            showSuccess("Submitted for review");
+          }}
+        >
+          Submit Review
         </Button>
       </div>
 
@@ -121,11 +192,21 @@ const VoiceChat = () => {
         onToggleMic={async () => {
           const rtc = (rtcRef.current ||= new WebRTCService());
           if (!micOn) {
+            // Require user to be on mic
+            const onSeat = seatsState.some((s) => s.userId === (user?.id || "you"));
+            if (!onSeat) {
+              showSuccess("Take a mic first");
+              return;
+            }
             const stream = await rtc.getMicStream();
             if (audioRef.current) {
               AudioManager.attachStream(audioRef.current, stream);
             }
             setMicOn(true);
+            if (id) {
+              const updated = MicService.setSpeaking(id, user?.id || "you", true);
+              setSeatsState([...updated]);
+            }
             showSuccess("Microphone On");
           } else {
             rtc.stopMic();
@@ -133,6 +214,10 @@ const VoiceChat = () => {
               AudioManager.detach(audioRef.current);
             }
             setMicOn(false);
+            if (id) {
+              const updated = MicService.setSpeaking(id, user?.id || "you", false);
+              setSeatsState([...updated]);
+            }
             showSuccess("Microphone Off");
           }
         }}
@@ -140,6 +225,16 @@ const VoiceChat = () => {
         onSendGift={() => setGiftOpen(true)}
         onEmoji={() => showSuccess("Emoji")}
       />
+
+      {/* Host microphone management panel */}
+      <div className="absolute right-4 bottom-24">
+        {/* In a real app, restrict to room host; shown for demo */}
+        <MicManager
+          roomId={id || "demo"}
+          seats={seatsState}
+          onSeatsChange={(s) => setSeatsState([...s])}
+        />
+      </div>
 
       {/* Gift dialog */}
       <Dialog open={giftOpen} onOpenChange={setGiftOpen}>

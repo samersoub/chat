@@ -10,9 +10,10 @@ type SeatProps = {
   imageUrl?: string;
   speaking?: boolean;
   muted?: boolean;
+  locked?: boolean;
 };
 
-const Seat: React.FC<SeatProps> = ({ name = "User", imageUrl, speaking = false, muted = false }) => {
+const Seat: React.FC<SeatProps> = ({ name = "User", imageUrl, speaking = false, muted = false, locked = false }) => {
   return (
     <div className="relative flex items-center justify-center">
       <div
@@ -32,6 +33,11 @@ const Seat: React.FC<SeatProps> = ({ name = "User", imageUrl, speaking = false, 
       {muted && (
         <div className="absolute -bottom-1 -right-1 bg-black/60 text-white rounded-full p-1">
           <MicOff className="h-4 w-4" />
+        </div>
+      )}
+      {locked && (
+        <div className="absolute inset-0 rounded-full bg-black/40 backdrop-blur flex items-center justify-center text-xs text-white/80">
+          Locked
         </div>
       )}
       <div className="mt-2 text-xs text-white/80 text-center w-20 truncate">{name}</div>
