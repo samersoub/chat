@@ -7,6 +7,8 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import { Button } from "@/components/ui/button";
 import { showSuccess } from "@/utils/toast";
+import { Table, TableHeader, TableHead, TableRow, TableBody, TableCell } from "@/components/ui/table";
+import { EconomyService } from "@/services/EconomyService";
 
 const financial = [
   { day: "Mon", recharge: 120, gifts: 50 },
@@ -31,6 +33,7 @@ const Reports: React.FC = () => {
         <TabsList className="mb-4">
           <TabsTrigger value="financial">Financial Stats</TabsTrigger>
           <TabsTrigger value="agency">Agency / Agents</TabsTrigger>
+          <TabsTrigger value="recharges">Recharge Reports</TabsTrigger>
         </TabsList>
         <TabsContent value="financial">
           <Card>
@@ -68,6 +71,37 @@ const Reports: React.FC = () => {
               </Card>
             ))}
           </div>
+        </TabsContent>
+        <TabsContent value="recharges">
+          <Card>
+            <CardHeader><CardTitle>Recent Coin Recharges</CardTitle></CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>TX</TableHead>
+                    <TableHead>Channel</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Date</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {EconomyService.getLogs()
+                    .filter((l) => l.type === "recharge")
+                    .slice(-50)
+                    .reverse()
+                    .map((l) => (
+                      <TableRow key={l.id}>
+                        <TableCell className="font-mono text-xs">{l.id}</TableCell>
+                        <TableCell className="capitalize">{(l.meta?.channel as string) || "-"}</TableCell>
+                        <TableCell>{l.amount}</TableCell>
+                        <TableCell>{new Date(l.at).toLocaleString()}</TableCell>
+                      </TableRow>
+                    ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </AdminLayout>

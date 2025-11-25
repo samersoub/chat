@@ -25,6 +25,7 @@ import AdminReports from "./pages/admin/Reports";
 import AdminSettings from "./pages/admin/Settings";
 import AdminStatus from "./pages/admin/Status";
 import BannersAdmin from "./pages/admin/Banners";
+import AgenciesAdmin from "./pages/admin/Agencies";
 import Wallet from "./pages/finance/Wallet";
 import HostAgency from "./pages/agency/HostAgency";
 import RechargeAgency from "./pages/agency/RechargeAgency";
@@ -61,6 +62,7 @@ const App = () => (
             <Route path="/admin/users" element={<AdminUsers />} />
             <Route path="/admin/rooms" element={<AdminRooms />} />
             <Route path="/admin/reports" element={<AdminReports />} />
+            <Route path="/admin/agencies" element={<AgenciesAdmin />} />
             <Route path="/admin/banners" element={<BannersAdmin />} />
             <Route path="/admin/settings" element={<AdminSettings />} />
             {/* Auth */}

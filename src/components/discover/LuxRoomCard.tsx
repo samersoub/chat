@@ -63,6 +63,7 @@ const LuxRoomCard: React.FC<Props> = ({ room }) => {
             <span className="text-xs sm:text-sm">{room.countryFlag}</span>
             <span className="text-xs sm:text-sm text-white/70">•</span>
             <span className="text-xs sm:text-sm text-white/80 truncate">المضيف: {room.hostName}</span>
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/15 border border-white/20">LV {room.hostLevel}</span>
             <User className="h-4 w-4 text-white/80" />
           </div>
         </div>
