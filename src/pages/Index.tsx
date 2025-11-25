@@ -11,6 +11,7 @@ import BannerCarousel from "@/components/discover/BannerCarousel";
 import ActionButtons from "@/components/discover/ActionButtons";
 import RoomsGrid from "@/components/discover/RoomsGrid";
 import { VoiceChatService } from "@/services/VoiceChatService";
+import BottomTab from "@/components/mobile/BottomTab";
 
 const Index = () => {
   const rooms = useMemo(() => VoiceChatService.listRooms(), []);
@@ -44,6 +45,7 @@ const Index = () => {
           </TabsContent>
         </Tabs>
       </div>
+      <BottomTab />
     </ChatLayout>
   );
 };

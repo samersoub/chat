@@ -21,6 +21,12 @@ import AdminUsers from "./pages/admin/Users";
 import AdminRooms from "./pages/admin/Rooms";
 import AdminReports from "./pages/admin/Reports";
 import AdminSettings from "./pages/admin/Settings";
+import Wallet from "./pages/finance/Wallet";
+import HostAgency from "./pages/agency/HostAgency";
+import RechargeAgency from "./pages/agency/RechargeAgency";
+import Store from "./pages/store/Store";
+import Moments from "./pages/Moments";
+import Messages from "./pages/Messages";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +53,15 @@ const App = () => (
           <Route path="/voice/create" element={<CreateRoom />} />
           <Route path="/voice/rooms/:id" element={<RoomDetails />} />
           <Route path="/voice/rooms/:id/join" element={<VoiceChat />} />
+          {/* Finance & Store */}
+          <Route path="/wallet" element={<Wallet />} />
+          <Route path="/store" element={<Store />} />
+          {/* Agency */}
+          <Route path="/agency/host" element={<HostAgency />} />
+          <Route path="/agency/recharge" element={<RechargeAgency />} />
+          {/* Social */}
+          <Route path="/moments" element={<Moments />} />
+          <Route path="/messages" element={<Messages />} />
           {/* Contacts */}
           <Route path="/contacts" element={<Contacts />} />
           <Route path="/contacts/invite" element={<InviteFriends />} />

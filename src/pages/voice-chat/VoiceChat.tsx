@@ -4,6 +4,9 @@ import { Button } from "@/components/ui/button";
 import SeatGrid from "@/components/voice/SeatGrid";
 import ChatOverlay from "@/components/voice/ChatOverlay";
 import ControlBar from "@/components/voice/ControlBar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import GiftTray, { GiftItem } from "@/components/gifts/GiftTray";
+import GiftAnimation from "@/components/gifts/GiftAnimation";
 import { showSuccess } from "@/utils/toast";
 
 const VoiceChat = () => {
@@ -11,6 +14,10 @@ const VoiceChat = () => {
   const navigate = useNavigate();
 
   const [micOn, setMicOn] = useState(false);
+  const [wallpaper, setWallpaper] = useState<"royal" | "nebula" | "galaxy">("royal");
+  const [giftOpen, setGiftOpen] = useState(false);
+  const [activeGift, setActiveGift] = useState<GiftItem | null>(null);
+
   const seats = useMemo(
     () => [
       { id: "1", name: "Host", imageUrl: "/placeholder.svg", speaking: true, muted: false },
@@ -39,10 +46,27 @@ const VoiceChat = () => {
     <div className="relative min-h-screen w-full overflow-hidden">
       {/* Animated mystical purple gradient background */}
       <div className="absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#2e026d] via-[#6d28d9] to-[#9333ea]" />
-        <div className="absolute -top-20 -left-20 h-64 w-64 bg-fuchsia-500/20 blur-3xl rounded-full animate-pulse" />
-        <div className="absolute bottom-0 right-0 h-80 w-80 bg-indigo-500/20 blur-3xl rounded-full animate-pulse" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.08),transparent_60%)]" />
+        {wallpaper === "royal" && (
+          <>
+            <div className="absolute inset-0 bg-gradient-to-br from-[#2E0249] via-[#570A57] to-[#9333ea]" />
+            <div className="absolute -top-20 -left-20 h-64 w-64 bg-fuchsia-500/20 blur-3xl rounded-full animate-pulse" />
+            <div className="absolute bottom-0 right-0 h-80 w-80 bg-indigo-500/20 blur-3xl rounded-full animate-pulse" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.08),transparent_60%)]" />
+          </>
+        )}
+        {wallpaper === "nebula" && (
+          <>
+            <div className="absolute inset-0 bg-gradient-to-tr from-[#3b0764] via-[#6d28d9] to-[#db2777]" />
+            <div className="absolute -top-16 left-1/3 h-72 w-72 bg-pink-500/20 blur-3xl rounded-full animate-pulse" />
+            <div className="absolute -bottom-16 right-1/4 h-64 w-64 bg-purple-500/20 blur-2xl rounded-full animate-pulse" />
+          </>
+        )}
+        {wallpaper === "galaxy" && (
+          <>
+            <div className="absolute inset-0 bg-gradient-to-br from-[#1e1b4b] via-[#312e81] to-[#7c3aed]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.06),transparent_40%),radial-gradient(circle_at_80%_70%,rgba(255,255,255,0.05),transparent_50%)]" />
+          </>
+        )}
       </div>
 
       {/* Header */}
@@ -57,6 +81,17 @@ const VoiceChat = () => {
           onClick={() => navigate(-1)}
         >
           Leave
+        </Button>
+      </div>
+
+      {/* Wallpaper switcher */}
+      <div className="absolute top-4 right-4">
+        <Button
+          variant="outline"
+          className="bg-white/10 text-white border-white/20 hover:bg-white/20"
+          onClick={() => setWallpaper(wallpaper === "royal" ? "nebula" : wallpaper === "nebula" ? "galaxy" : "royal")}
+        >
+          Wallpaper
         </Button>
       </div>
 
@@ -80,9 +115,32 @@ const VoiceChat = () => {
           showSuccess(!micOn ? "Microphone On" : "Microphone Off");
         }}
         onOpenChat={() => showSuccess("Open chat")}
-        onSendGift={() => showSuccess("Gift sent")}
+        onSendGift={() => setGiftOpen(true)}
         onEmoji={() => showSuccess("Emoji")}
       />
+
+      {/* Gift dialog */}
+      <Dialog open={giftOpen} onOpenChange={setGiftOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader><DialogTitle>Send a Gift</DialogTitle></DialogHeader>
+          <GiftTray
+            senderUid="you"
+            receiverUid={id || "host"}
+            onSent={(g) => {
+              setActiveGift(g);
+              setGiftOpen(false);
+              setTimeout(() => setActiveGift(null), 3000);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Gift overlay animation */}
+      {activeGift && (
+        <div className="absolute inset-0 z-40 pointer-events-none flex items-center justify-center">
+          <GiftAnimation type={activeGift.id} />
+        </div>
+      )}
     </div>
   );
 };
