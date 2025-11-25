@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import SeatGrid from "@/components/voice/SeatGrid";
+import SeatingNine from "@/components/voice/SeatingNine";
 import ChatOverlay from "@/components/voice/ChatOverlay";
 import ControlBar from "@/components/voice/ControlBar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -46,7 +46,12 @@ const VoiceChat = () => {
   const user = AuthService.getCurrentUser();
   const roomSeats = React.useMemo(() => (id ? MicService.getSeats(id) : []), [id]);
   const [seatsState, setSeatsState] = useState(roomSeats);
-  const isHost = !!(id && user && VoiceChatService.getRoom(id)?.hostId === user.id);
+  const room = id ? VoiceChatService.getRoom(id) : undefined;
+  const roomTitle = room?.name || "Room";
+  const hostId = room?.hostId;
+  const hostName = hostId === user?.id ? user?.name || "You" : "Host";
+
+  const isHost = !!(id && user && hostId === user.id);
 
   // Join on mount, leave on unmount, destroy when empty
   React.useEffect(() => {
@@ -64,7 +69,7 @@ const VoiceChat = () => {
     };
   }, [id, user?.id]);
 
-  // Client-side ghost mic detection: if mic is on but user not on seat, stop mic
+  // Ghost mic detection
   React.useEffect(() => {
     if (!id || !user?.id) return;
     const onSeat = seatsState.some((s) => s.userId === user.id);
@@ -92,18 +97,20 @@ const VoiceChat = () => {
     };
   }, [id]);
 
-  const seats = React.useMemo(
+  // Map seats into 8 guest seats (1..8). Seat index 0..7 map to guest 1..8.
+  const guestSeats = React.useMemo(
     () =>
-      (seatsState.length ? seatsState : Array.from({ length: 8 }, (_, i) => ({ index: i, locked: false, muted: false, speaking: false } as any))).map(
-        (s, i) => ({
-          id: `${i}`,
-          name: s.userId ? s.name || "User" : s.locked ? "Locked" : "Empty",
-          imageUrl: undefined,
-          speaking: !!s.speaking,
-          muted: !!s.muted,
-          locked: !!s.locked,
-        })
-      ),
+      Array.from({ length: 8 }, (_, i) => {
+        const s = seatsState[i];
+        return {
+          index: i + 1,
+          userId: s?.userId,
+          name: s?.userId ? s.name || "User" : undefined,
+          muted: !!s?.muted,
+          locked: !!s?.locked,
+          speaking: !!s?.speaking,
+        };
+      }),
     [seatsState]
   );
 
@@ -142,8 +149,8 @@ const VoiceChat = () => {
     <div className="relative min-h-screen w-full overflow-hidden">
       {/* Hidden audio element for local mic preview */}
       <audio ref={audioRef} className="hidden" />
-      
-      {/* Animated mystical purple gradient background */}
+
+      {/* Background: keep mystical gradients for now */}
       <div className="absolute inset-0 -z-10">
         {wallpaper === "royal" && (
           <>
@@ -168,10 +175,10 @@ const VoiceChat = () => {
         )}
       </div>
 
-      {/* Header */}
+      {/* Header with dynamic title and ID */}
       <div className="absolute top-4 left-4 flex items-center gap-3">
         <div className="text-white">
-          <div className="text-sm font-semibold">Room: {id ?? "—"}</div>
+          <div className="text-sm font-semibold">{roomTitle}</div>
           <div className="text-xs text-white/80">ID: {id ?? "—"}</div>
         </div>
         <Button
@@ -216,7 +223,7 @@ const VoiceChat = () => {
         </Button>
       </div>
 
-      {/* Wallpaper switcher + recording controls */}
+      {/* Wallpaper + recording controls */}
       <div className="absolute top-4 right-4 flex items-center gap-2">
         <Button
           variant="outline"
@@ -265,10 +272,38 @@ const VoiceChat = () => {
         </Button>
       </div>
 
-      {/* Center seating grid */}
+      {/* Center seating: Host + 8 guests */}
       <div className="flex items-center justify-center pt-20 pb-32 px-6">
         <div className="w-full max-w-4xl">
-          <SeatGrid seats={seats} />
+          <SeatingNine
+            hostName={hostName}
+            hostFlagCode={room?.name ? undefined : undefined}
+            guests={guestSeats}
+            onClickGuest={(displayIndex, seat) => {
+              if (!id) return;
+              // displayIndex 1..8 maps to MicService seat index 0..7
+              const targetIndex = displayIndex - 1;
+              if (!seat.userId) {
+                // Take seat at target index
+                try {
+                  const updated = MicService.putOnMic(id, user?.id || "you", user?.name || "You", targetIndex);
+                  setSeatsState([...updated]);
+                  showSuccess(`Took seat ${displayIndex}`);
+                } catch (e: any) {
+                  showError(e.message || "Unable to take seat");
+                }
+              } else {
+                // Toggle mute for occupied seat
+                try {
+                  const updated = MicService.mute(id, seat.userId, !seat.muted);
+                  setSeatsState([...updated]);
+                  showSuccess(`${!seat.muted ? "Muted" : "Unmuted"} ${seat.name || "Guest"}`);
+                } catch (e: any) {
+                  showError(e.message || "Unable to toggle mute");
+                }
+              }
+            }}
+          />
         </div>
       </div>
 
@@ -283,7 +318,6 @@ const VoiceChat = () => {
         onToggleMic={async () => {
           const rtc = (rtcRef.current ||= new WebRTCService());
           if (!micOn) {
-            // Require user to be on mic
             const onSeat = seatsState.some((s) => s.userId === (user?.id || "you"));
             if (!onSeat) {
               showSuccess("Take a mic first");
@@ -334,12 +368,10 @@ const VoiceChat = () => {
           <MusicControlBar roomId={id} userId={user.id} />
           <SongRequestPanel roomId={id} userId={user.id} />
           <MusicQueue roomId={id} userId={user.id} />
-          {/* Moderator tools for owner or moderators */}
           {(MusicPermissionsService.getRole(id, user.id) === "owner" ||
             MusicPermissionsService.getRole(id, user.id) === "moderator") && (
             <ModeratorTools roomId={id} userId={user.id} />
           )}
-          {/* Reports panel accessible to all */}
           <ReportPanel roomId={id} userId={user.id} />
         </div>
       )}
@@ -382,7 +414,6 @@ const VoiceChat = () => {
         onOpenChange={setEmojiOpen}
         onPick={(emoji) => {
           showSuccess(`Sent ${emoji}`);
-          // NEW: also send emoji to room chat
           if (id && user?.id) {
             LocalChatService.send(id, user.id, emoji, "text");
           }
