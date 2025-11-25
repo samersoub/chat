@@ -12,18 +12,20 @@ import ActionButtons from "@/components/discover/ActionButtons";
 import RoomsGrid from "@/components/discover/RoomsGrid";
 import { VoiceChatService } from "@/services/VoiceChatService";
 import BottomTab from "@/components/mobile/BottomTab";
+import { useLocale } from "@/contexts";
 
 const Index = () => {
   const rooms = useMemo(() => VoiceChatService.listRooms(), []);
+  const { t } = useLocale();
 
   return (
-    <ChatLayout title="Discover">
+    <ChatLayout title={t("Discover")}>
       <div className="p-4 sm:p-6 max-w-6xl mx-auto space-y-4">
         <Tabs defaultValue="popular" className="w-full">
           <TabsList className="w-full justify-start">
-            <TabsTrigger value="popular">Popular</TabsTrigger>
-            <TabsTrigger value="following">Following</TabsTrigger>
-            <TabsTrigger value="new">New</TabsTrigger>
+            <TabsTrigger value="popular">{t("Popular")}</TabsTrigger>
+            <TabsTrigger value="following">{t("Following")}</TabsTrigger>
+            <TabsTrigger value="new">{t("New")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="popular" className="space-y-4">

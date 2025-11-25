@@ -28,54 +28,57 @@ import Store from "./pages/store/Store";
 import Hosts from "./pages/hosts/Hosts";
 import Moments from "./pages/Moments";
 import Messages from "./pages/Messages";
+import { LocaleProvider } from "@/contexts";
 
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* Admin Panel */}
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/users" element={<AdminUsers />} />
-          <Route path="/admin/rooms" element={<AdminRooms />} />
-          <Route path="/admin/reports" element={<AdminReports />} />
-          <Route path="/admin/settings" element={<AdminSettings />} />
-          {/* Auth */}
-          <Route path="/auth/login" element={<Login />} />
-          <Route path="/auth/register" element={<Register />} />
-          <Route path="/auth/verify" element={<PhoneVerification />} />
-          {/* Voice Chat */}
-          <Route path="/voice/rooms" element={<RoomList />} />
-          <Route path="/voice/create" element={<CreateRoom />} />
-          <Route path="/voice/rooms/:id" element={<RoomDetails />} />
-          <Route path="/voice/rooms/:id/join" element={<VoiceChat />} />
-          {/* Finance & Store */}
-          <Route path="/wallet" element={<Wallet />} />
-          <Route path="/store" element={<Store />} />
-          {/* Agency */}
-          <Route path="/agency/host" element={<HostAgency />} />
-          <Route path="/agency/recharge" element={<RechargeAgency />} />
-          {/* Social */}
-          <Route path="/moments" element={<Moments />} />
-          <Route path="/messages" element={<Messages />} />
-          <Route path="/hosts" element={<Hosts />} />
-          {/* Contacts */}
-          <Route path="/contacts" element={<Contacts />} />
-          <Route path="/contacts/invite" element={<InviteFriends />} />
-          {/* Profile */}
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/settings" element={<Settings />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <LocaleProvider>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            {/* Admin Panel */}
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/users" element={<AdminUsers />} />
+            <Route path="/admin/rooms" element={<AdminRooms />} />
+            <Route path="/admin/reports" element={<AdminReports />} />
+            <Route path="/admin/settings" element={<AdminSettings />} />
+            {/* Auth */}
+            <Route path="/auth/login" element={<Login />} />
+            <Route path="/auth/register" element={<Register />} />
+            <Route path="/auth/verify" element={<PhoneVerification />} />
+            {/* Voice Chat */}
+            <Route path="/voice/rooms" element={<RoomList />} />
+            <Route path="/voice/create" element={<CreateRoom />} />
+            <Route path="/voice/rooms/:id" element={<RoomDetails />} />
+            <Route path="/voice/rooms/:id/join" element={<VoiceChat />} />
+            {/* Finance & Store */}
+            <Route path="/wallet" element={<Wallet />} />
+            <Route path="/store" element={<Store />} />
+            {/* Agency */}
+            <Route path="/agency/host" element={<HostAgency />} />
+            <Route path="/agency/recharge" element={<RechargeAgency />} />
+            {/* Social */}
+            <Route path="/moments" element={<Moments />} />
+            <Route path="/messages" element={<Messages />} />
+            <Route path="/hosts" element={<Hosts />} />
+            {/* Contacts */}
+            <Route path="/contacts" element={<Contacts />} />
+            <Route path="/contacts/invite" element={<InviteFriends />} />
+            {/* Profile */}
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/settings" element={<Settings />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </LocaleProvider>
 );
 
 export default App;
