@@ -14,6 +14,9 @@ import { VoiceChatService } from "@/services/VoiceChatService";
 import BottomTab from "@/components/mobile/BottomTab";
 import { useLocale } from "@/contexts";
 import GiftLeaderboard from "@/components/gifts/GiftLeaderboard";
+import MusicControlBar from "@/components/music/MusicControlBar";
+import MusicQueue from "@/components/music/MusicQueue";
+import SongRequestPanel from "@/components/music/SongRequestPanel";
 
 const Index = () => {
   const rooms = useMemo(() => VoiceChatService.listRooms(), []);
@@ -22,6 +25,32 @@ const Index = () => {
   return (
     <ChatLayout title={t("Discover")}>
       <div className="p-4 sm:p-6 max-w-6xl mx-auto space-y-4">
+        {/* NEW: Room Music quick section */}
+        <div className="grid grid-cols-1 gap-3">
+          {rooms.length > 0 ? (
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <div className="text-sm font-semibold">Room Music</div>
+                <div className="text-xs text-muted-foreground">Manage now playing and requests</div>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3">
+                {/* Control bar */}
+                <MusicControlBar roomId={rooms[0].id} userId={"guest"} />
+                {/* Request panel */}
+                <div className="flex-1">
+                  <SongRequestPanel roomId={rooms[0].id} userId={"guest"} />
+                </div>
+              </div>
+              {/* Queue */}
+              <MusicQueue roomId={rooms[0].id} userId={"guest"} />
+            </div>
+          ) : (
+            <div className="text-sm text-muted-foreground">
+              No rooms available yet. Create a room to start playing music and accepting song requests.
+            </div>
+          )}
+        </div>
+
         <Tabs defaultValue="popular" className="w-full">
           <TabsList className="w-full justify-start">
             <TabsTrigger value="popular">{t("Popular")}</TabsTrigger>
