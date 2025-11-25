@@ -7,12 +7,13 @@ import ControlBar from "@/components/voice/ControlBar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import GiftTray, { GiftItem } from "@/components/gifts/GiftTray";
 import GiftAnimation from "@/components/gifts/GiftAnimation";
-import { showSuccess } from "@/utils/toast";
+import { showError, showSuccess } from "@/utils/toast";
 import { WebRTCService } from "@/services/WebRTCService";
 import { AudioManager } from "@/utils/AudioManager";
 import { MicService } from "@/services/MicService";
 import { RecordingService } from "@/services/RecordingService";
 import { AuthService } from "@/services/AuthService";
+import { VoiceChatService } from "@/services/VoiceChatService";
 import MicManager from "@/components/voice/MicManager";
 
 const VoiceChat = () => {
@@ -23,6 +24,7 @@ const VoiceChat = () => {
   const [wallpaper, setWallpaper] = useState<"royal" | "nebula" | "galaxy">("royal");
   const [giftOpen, setGiftOpen] = useState(false);
   const [activeGift, setActiveGift] = useState<GiftItem | null>(null);
+  const [subscribeMode, setSubscribeMode] = useState<"auto" | "manual">("auto");
 
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
   const rtcRef = React.useRef<WebRTCService | null>(null);
@@ -30,7 +32,42 @@ const VoiceChat = () => {
   const user = AuthService.getCurrentUser();
   const roomSeats = React.useMemo(() => (id ? MicService.getSeats(id) : []), [id]);
   const [seatsState, setSeatsState] = useState(roomSeats);
-  const isHost = false; // Host detection can be wired with VoiceChatService.getRoom(id)?.hostId === user?.id
+  const isHost = !!(id && user && VoiceChatService.getRoom(id)?.hostId === user.id);
+
+  // Join on mount, leave on unmount, destroy when empty
+  React.useEffect(() => {
+    if (!id || !user?.id) return;
+    try {
+      VoiceChatService.joinRoom(id, user.id);
+    } catch {}
+    return () => {
+      try {
+        const updatedRoom = VoiceChatService.leaveRoom(id, user.id);
+        if (updatedRoom.participants.length === 0) {
+          VoiceChatService.deleteRoom(id);
+        }
+      } catch {}
+    };
+  }, [id, user?.id]);
+
+  // Client-side ghost mic detection: if mic is on but user not on seat, stop mic
+  React.useEffect(() => {
+    if (!id || !user?.id) return;
+    const onSeat = seatsState.some((s) => s.userId === user.id);
+    if (micOn && !onSeat) {
+      const rtc = (rtcRef.current ||= new WebRTCService());
+      rtc.stopMic();
+      if (audioRef.current) {
+        AudioManager.detach(audioRef.current);
+      }
+      setMicOn(false);
+      try {
+        const updated = MicService.setSpeaking(id, user.id, false);
+        setSeatsState([...updated]);
+      } catch {}
+      showError("Detected ghost mic. Mic muted until you take a seat.");
+    }
+  }, [micOn, seatsState, id, user?.id]);
 
   const seats = React.useMemo(
     () =>
@@ -96,9 +133,25 @@ const VoiceChat = () => {
         <Button
           variant="outline"
           className="bg-white/10 text-white border-white/20 hover:bg-white/20"
-          onClick={() => navigate(-1)}
+          onClick={() => {
+            if (id && user?.id) {
+              try {
+                const updatedRoom = VoiceChatService.leaveRoom(id, user.id);
+                if (updatedRoom.participants.length === 0) {
+                  VoiceChatService.deleteRoom(id);
+                }
+              } catch {}
+            }
+            const rtc = (rtcRef.current ||= new WebRTCService());
+            rtc.stopMic();
+            if (audioRef.current) {
+              AudioManager.detach(audioRef.current);
+            }
+            setMicOn(false);
+            navigate(-1);
+          }}
         >
-          Leave
+          Exit Room
         </Button>
         <Button
           variant="outline"
@@ -172,6 +225,16 @@ const VoiceChat = () => {
         >
           Submit Review
         </Button>
+        <Button
+          variant="outline"
+          className="bg-white/10 text-white border-white/20 hover:bg-white/20"
+          onClick={() => {
+            setSubscribeMode((m) => (m === "auto" ? "manual" : "auto"));
+            showSuccess(`Subscription mode: ${subscribeMode === "auto" ? "manual" : "auto"}`);
+          }}
+        >
+          Subscribe: {subscribeMode === "auto" ? "Auto" : "Manual"}
+        </Button>
       </div>
 
       {/* Center seating grid */}
@@ -228,12 +291,13 @@ const VoiceChat = () => {
 
       {/* Host microphone management panel */}
       <div className="absolute right-4 bottom-24">
-        {/* In a real app, restrict to room host; shown for demo */}
-        <MicManager
-          roomId={id || "demo"}
-          seats={seatsState}
-          onSeatsChange={(s) => setSeatsState([...s])}
-        />
+        {isHost && (
+          <MicManager
+            roomId={id || "demo"}
+            seats={seatsState}
+            onSeatsChange={(s) => setSeatsState([...s])}
+          />
+        )}
       </div>
 
       {/* Gift dialog */}
