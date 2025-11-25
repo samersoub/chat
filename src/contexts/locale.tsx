@@ -28,6 +28,7 @@ const dict: Record<Locale, Record<string, string>> = {
     "Profile": "Profile",
     "Settings": "Settings",
     "Search…": "Search…",
+    "Notifications": "Notifications",
   },
   ar: {
     "Discover": "اكتشف",
@@ -42,6 +43,7 @@ const dict: Record<Locale, Record<string, string>> = {
     "Profile": "الملف الشخصي",
     "Settings": "الإعدادات",
     "Search…": "ابحث…",
+    "Notifications": "الإشعارات",
   },
 };
 

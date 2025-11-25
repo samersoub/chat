@@ -29,6 +29,7 @@ import Store from "./pages/store/Store";
 import Hosts from "./pages/hosts/Hosts";
 import Moments from "./pages/Moments";
 import Messages from "./pages/Messages";
+import Inbox from "./pages/notifications/Inbox";
 import { LocaleProvider } from "@/contexts";
 import Matching from "./pages/matching/Matching";
 import PrivateCall from "./pages/matching/PrivateCall";
@@ -83,6 +84,8 @@ const App = () => (
             <Route path="/moments" element={<Moments />} />
             <Route path="/messages" element={<Messages />} />
             <Route path="/hosts" element={<Hosts />} />
+            {/* Notifications */}
+            <Route path="/inbox" element={<Inbox />} />
             {/* Contacts */}
             <Route path="/contacts" element={<Contacts />} />
             <Route path="/contacts/invite" element={<InviteFriends />} />

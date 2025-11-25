@@ -121,6 +121,11 @@ const ChatLayout: React.FC<ChatLayoutProps> = ({ children, title = "Lama Chat" }
                       <Link to="/settings">{t("Settings")}</Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={location.pathname === "/inbox"}>
+                      <Link to="/inbox">{t("Notifications")}</Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
