@@ -33,7 +33,7 @@ type ChatLayoutProps = {
   hideHeader?: boolean;
 };
 
-const ChatLayout: React.FC<ChatLayoutProps> = ({ children, title = "Lama Chat", hideHeader = false }) => {
+const ChatLayout: React.FC<ChatLayoutProps> = ({ children, title = "دندنة شات", hideHeader = false }) => {
   const location = useLocation();
   const rooms = useMemo(() => VoiceChatService.listRooms(), []);
   const { t, dir } = useLocale();
@@ -48,7 +48,7 @@ const ChatLayout: React.FC<ChatLayoutProps> = ({ children, title = "Lama Chat", 
                 <div className="h-6 w-6 rounded bg-primary/10 flex items-center justify-center">
                   <MessageSquare className="h-4 w-4 text-primary" />
                 </div>
-                <span className="text-sm font-semibold">{t("Lama Chat")}</span>
+                <span className="text-sm font-semibold">دندنة شات</span>
               </div>
               <div className="flex items-center gap-2">
                 <LanguageSwitch />

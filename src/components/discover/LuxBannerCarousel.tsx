@@ -3,28 +3,16 @@
 import React from "react";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
 import { cn } from "@/lib/utils";
-
-const slides = [
-  {
-    title: "ادعُ الأصدقاء واحصل على مكافآت",
-    sub: "مكافآت ذهبية ومزايا حصرية",
-    bg: "linear-gradient(135deg, #3b2f2f 0%, #1f1b14 60%), url('https://images.unsplash.com/photo-1548095115-45697e336b54?q=80&w=1200&auto=format&fit=crop')",
-  },
-  {
-    title: "ترقيات VIP وتاج الملك",
-    sub: "ارفع مستواك وتميّز بإطار ذهبي",
-    bg: "linear-gradient(135deg, #4b2b2b 0%, #2c2218 60%), url('https://images.unsplash.com/photo-1519682335074-1c3b3b66f2d4?q=80&w=1200&auto=format&fit=crop')",
-  },
-  {
-    title: "سجادة حمراء وجوائز يومية",
-    sub: "كُن نجم الغرفة واحصل على الجوائز",
-    bg: "linear-gradient(135deg, #5a2f1f 0%, #2a1e12 60%), url('https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1200&auto=format&fit=crop')",
-  },
-];
+import { BannerService, type Banner } from "@/services/BannerService";
 
 const LuxBannerCarousel: React.FC = () => {
   const [api, setApi] = React.useState<CarouselApi | null>(null);
   const [index, setIndex] = React.useState(0);
+  const [slides, setSlides] = React.useState<Banner[]>([]);
+
+  React.useEffect(() => {
+    setSlides(BannerService.list());
+  }, []);
 
   React.useEffect(() => {
     if (!api) return;
@@ -41,18 +29,19 @@ const LuxBannerCarousel: React.FC = () => {
     <div className="relative rounded-xl overflow-hidden">
       <Carousel setApi={setApi} opts={{ loop: true }}>
         <CarouselContent>
-          {slides.map((s, i) => (
-            <CarouselItem key={i} className="basis-full">
-              <div
-                className="h-40 sm:h-56 w-full bg-cover bg-center relative"
-                style={{ backgroundImage: s.bg, backgroundBlendMode: "multiply" }}
+          {slides.map((s) => (
+            <CarouselItem key={s.id} className="basis-full">
+              <a
+                href={s.linkUrl || "#"}
+                className="block h-40 sm:h-56 w-full bg-cover bg-center relative"
+                style={{ backgroundImage: `linear-gradient(135deg, #3b2f2f 0%, #1f1b14 60%), url('${s.imageUrl}')`, backgroundBlendMode: "multiply" }}
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/10 to-red-500/10" />
                 <div className="absolute bottom-4 right-4 text-right text-white drop-shadow">
                   <div className="text-lg sm:text-xl font-bold">{s.title}</div>
-                  <div className="text-xs sm:text-sm text-white/80 mt-1">{s.sub}</div>
+                  {s.sub && <div className="text-xs sm:text-sm text-white/80 mt-1">{s.sub}</div>}
                 </div>
-              </div>
+              </a>
             </CarouselItem>
           ))}
         </CarouselContent>

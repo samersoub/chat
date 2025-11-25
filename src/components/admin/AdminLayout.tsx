@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Activity, BarChart3, Home, Users, Mic, FileChartColumn, Settings } from "lucide-react";
+import { Image as ImageIcon } from "lucide-react";
 
 const AdminLayout: React.FC<{ children: React.ReactNode; title?: string }> = ({ children, title = "Admin" }) => {
   const loc = useLocation();
@@ -69,6 +70,11 @@ const AdminLayout: React.FC<{ children: React.ReactNode; title?: string }> = ({ 
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={is("/admin/reports")}>
                     <Link to="/admin/reports"><FileChartColumn /> Reports</Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={is("/admin/banners")}>
+                    <Link to="/admin/banners"><ImageIcon /> Banners</Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
