@@ -74,6 +74,16 @@ export const EconomyService = {
     return bal;
   },
 
+  // General spending helper
+  spendCoins(amount: number, meta?: Record<string, any>): Balance {
+    const bal = this.getBalance();
+    if (amount > bal.coins) throw new Error("Insufficient Coins");
+    bal.coins -= amount;
+    this.saveBalance(bal);
+    this.log({ id: uid(), type: "transfer", amount, meta, at: Date.now() });
+    return bal;
+  },
+
   // Gifts
   sendGift(senderUid: string, receiverUid: string, giftId: string, priceCoins: number, rewardDiamonds: number): Balance {
     const bal = this.getBalance();

@@ -11,6 +11,7 @@ import { MusicService } from "@/services/MusicService";
 import { MusicPermissionsService } from "@/services/MusicPermissionsService";
 import { MusicTrack } from "@/models/MusicTrack";
 import { showSuccess, showError } from "@/utils/toast";
+import { EconomyService } from "@/services/EconomyService";
 
 const SongRequestPanel: React.FC<{ roomId: string; userId: string }> = ({ roomId, userId }) => {
   const categories = MusicService.getCategories();
@@ -47,6 +48,10 @@ const SongRequestPanel: React.FC<{ roomId: string; userId: string }> = ({ roomId
     if (!title) {
       showError("Enter a song title");
       return;
+    }
+    if (vip) {
+      // Deduct VIP cost (10 coins)
+      EconomyService.spendCoins(10, { feature: "vip-request", roomId, userId });
     }
     const track: MusicTrack = {
       id: `s_${Math.random().toString(36).slice(2, 10)}`,
@@ -111,6 +116,9 @@ const SongRequestPanel: React.FC<{ roomId: string; userId: string }> = ({ roomId
                             variant="outline"
                             size="sm"
                             onClick={() => {
+                              if (vip) {
+                                EconomyService.spendCoins(10, { feature: "vip-request", roomId, userId, from: "playlist" });
+                              }
                               const next = MusicService.addRequest(roomId, t, userId, vip);
                               setQueue(next);
                               showSuccess("Requested from playlist");
@@ -137,6 +145,9 @@ const SongRequestPanel: React.FC<{ roomId: string; userId: string }> = ({ roomId
             <Button variant={vip ? "default" : "outline"} size="sm" onClick={() => setVip((v) => !v)}>
               {vip ? "VIP Enabled" : "Enable VIP"}
             </Button>
+          </div>
+          <div className="text-[11px] text-muted-foreground">
+            {vip ? "Cost: 10 coins" : "Enable VIP to prioritize your request (10 coins)"}
           </div>
           <Button onClick={onRequest}>Request Song</Button>
         </div>

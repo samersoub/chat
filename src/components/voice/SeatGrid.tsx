@@ -14,7 +14,7 @@ type GridSeat = {
 
 const SeatGrid: React.FC<{ seats: GridSeat[] }> = ({ seats }) => {
   const padded = [...seats];
-  while (padded.length < 8) {
+  while (padded.length < 10) {
     padded.push({
       id: `empty-${padded.length}`,
       name: "Empty",
@@ -26,8 +26,8 @@ const SeatGrid: React.FC<{ seats: GridSeat[] }> = ({ seats }) => {
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8">
-      {padded.slice(0, 8).map((s) => (
+    <div className="grid grid-cols-2 sm:grid-cols-5 gap-6 sm:gap-8">
+      {padded.slice(0, 10).map((s) => (
         <Seat key={s.id} name={s.name} imageUrl={s.imageUrl} speaking={s.speaking} muted={s.muted} locked={s.locked} />
       ))}
     </div>

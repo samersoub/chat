@@ -14,6 +14,7 @@ import { MusicPermissionsService } from "@/services/MusicPermissionsService";
 import { VoiceChatService } from "@/services/VoiceChatService";
 import { showSuccess, showError } from "@/utils/toast";
 import { useLocale } from "@/contexts";
+import { EconomyService } from "@/services/EconomyService";
 
 const MusicLibrary: React.FC = () => {
   const { t } = useLocale();
@@ -92,7 +93,7 @@ const MusicLibrary: React.FC = () => {
                         <CardHeader>
                           <CardTitle className="flex items-center justify-between">
                             <span className="text-base">{pl.name}</span>
-                            {pl.vipOnly && <Badge>VIP</Badge>}
+                            {pl.vipOnly && <Badge>VIP • 10 coins</Badge>}
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-2">
@@ -115,6 +116,9 @@ const MusicLibrary: React.FC = () => {
                                         if (!roomId) {
                                           showError("Select a room first");
                                           return;
+                                        }
+                                        if (pl.vipOnly) {
+                                          EconomyService.spendCoins(10, { feature: "vip-request", roomId, from: "library" });
                                         }
                                         const next = MusicService.addRequest(roomId, t, "you", pl.vipOnly);
                                         showSuccess("Requested to room");

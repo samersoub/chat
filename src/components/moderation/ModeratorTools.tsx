@@ -31,6 +31,12 @@ const ModeratorTools: React.FC<Props> = ({ roomId, userId }) => {
       showError("Enter user ID");
       return;
     }
+    const current = MusicPermissionsService.listModerators(roomId);
+    const limit = MusicPermissionsService.getModeratorLimit(roomId);
+    if (current.length >= limit) {
+      showError(`Moderator limit reached (${limit})`);
+      return;
+    }
     MusicPermissionsService.addModerator(roomId, modId);
     setModId("");
     showSuccess("Moderator assigned");
@@ -166,6 +172,9 @@ const ModeratorTools: React.FC<Props> = ({ roomId, userId }) => {
         </div>
 
         <div className="text-xs text-muted-foreground">Role: {role}</div>
+        <div className="text-xs text-muted-foreground">
+          Moderators: {MusicPermissionsService.listModerators(roomId).length}/{MusicPermissionsService.getModeratorLimit(roomId)}
+        </div>
       </CardContent>
     </Card>
   );

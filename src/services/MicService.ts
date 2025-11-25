@@ -13,8 +13,11 @@ function key(roomId: string) {
   return `voice:seats:${roomId}`;
 }
 
+import { RoomSettingsService } from "@/services/RoomSettingsService";
+
 function defaults(): SeatInfo[] {
-  return Array.from({ length: 8 }, (_, i) => ({
+  const count = 10; // fallback if roomId not known here
+  return Array.from({ length: count }, (_, i) => ({
     index: i,
     muted: false,
     locked: false,
@@ -24,22 +27,38 @@ function defaults(): SeatInfo[] {
 
 function read(roomId: string): SeatInfo[] {
   const raw = localStorage.getItem(key(roomId));
-  if (!raw) return defaults();
+  const max = RoomSettingsService.getSettings(roomId).maxSpeakers;
+  if (!raw) {
+    const base = Array.from({ length: max }, (_, i) => ({
+      index: i,
+      muted: false,
+      locked: false,
+      speaking: false,
+    }));
+    return base;
+  }
   try {
     const seats = JSON.parse(raw) as SeatInfo[];
-    // ensure at least 8 seats
+    // ensure at least max seats
     const arr = [...seats];
-    while (arr.length < 8) {
+    while (arr.length < max) {
       arr.push({ index: arr.length, muted: false, locked: false, speaking: false });
     }
-    return arr.slice(0, 8);
+    return arr.slice(0, max);
   } catch {
-    return defaults();
+    const base = Array.from({ length: max }, (_, i) => ({
+      index: i,
+      muted: false,
+      locked: false,
+      speaking: false,
+    }));
+    return base;
   }
 }
 
 function write(roomId: string, seats: SeatInfo[]) {
-  localStorage.setItem(key(roomId), JSON.stringify(seats.slice(0, 8)));
+  const max = RoomSettingsService.getSettings(roomId).maxSpeakers;
+  localStorage.setItem(key(roomId), JSON.stringify(seats.slice(0, max)));
 }
 
 function findByUser(seats: SeatInfo[], userId: string) {

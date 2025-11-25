@@ -2,6 +2,7 @@
 
 import { AuthService } from "@/services/AuthService";
 import { VoiceChatService } from "@/services/VoiceChatService";
+import { RoomSettingsService } from "@/services/RoomSettingsService";
 
 export type MusicRole = "owner" | "moderator" | "speaker" | "listener";
 
@@ -11,6 +12,11 @@ const MODS = new Map<string, Set<string>>(); // roomId -> moderator userIds
 export const MusicPermissionsService = {
   addModerator(roomId: string, userId: string) {
     const s = MODS.get(roomId) || new Set<string>();
+    const limit = RoomSettingsService.getSettings(roomId).moderatorsLimit;
+    if (s.size >= limit) {
+      // limit reached: do nothing
+      return;
+    }
     s.add(userId);
     MODS.set(roomId, s);
   },
@@ -20,6 +26,12 @@ export const MusicPermissionsService = {
       s.delete(userId);
       MODS.set(roomId, s);
     }
+  },
+  listModerators(roomId: string): string[] {
+    return Array.from(MODS.get(roomId) ?? []);
+  },
+  getModeratorLimit(roomId: string): number {
+    return RoomSettingsService.getSettings(roomId).moderatorsLimit;
   },
   getRole(roomId: string, userId?: string): MusicRole {
     const uid = userId ?? AuthService.getCurrentUser()?.id;
