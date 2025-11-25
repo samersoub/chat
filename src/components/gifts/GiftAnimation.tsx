@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { Player } from "lottie-react";
+import React, { useEffect, useState } from "react";
+import Lottie from "lottie-react";
 
 type GiftAnimationProps = {
   type: "rose" | "car" | "dragon";
@@ -15,14 +15,24 @@ const sources: Record<GiftAnimationProps["type"], string> = {
 };
 
 const GiftAnimation: React.FC<GiftAnimationProps> = ({ type, className }) => {
+  const [data, setData] = useState<any | null>(null);
+
+  useEffect(() => {
+    setData(null);
+    fetch(sources[type])
+      .then((res) => res.json())
+      .then((json) => setData(json));
+  }, [type]);
+
   return (
     <div className={className}>
-      <Player
-        src={sources[type]}
-        autoplay
-        loop={false}
-        style={{ width: "100%", height: "100%" }}
-      />
+      {data && (
+        <Lottie
+          animationData={data}
+          loop={false}
+          style={{ width: "100%", height: "100%" }}
+        />
+      )}
     </div>
   );
 };
