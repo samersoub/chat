@@ -1,32 +1,48 @@
 // Update this page (the content is just a fallback if you fail to update the page)
 
+import React, { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import ChatLayout from "@/components/chat/ChatLayout";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import BannerCarousel from "@/components/discover/BannerCarousel";
+import ActionButtons from "@/components/discover/ActionButtons";
+import RoomsGrid from "@/components/discover/RoomsGrid";
+import { VoiceChatService } from "@/services/VoiceChatService";
 
 const Index = () => {
+  const rooms = useMemo(() => VoiceChatService.listRooms(), []);
+
   return (
-    <ChatLayout title="Welcome">
-      <div className="p-6 max-w-3xl mx-auto">
-        <div className="space-y-6">
-          <h2 className="text-2xl font-semibold">Welcome to Lama Chat</h2>
-          <p className="text-sm text-muted-foreground">
-            Create a room to start a conversation, or browse existing rooms from the sidebar.
-          </p>
-          <Card>
-            <CardContent className="p-6 grid gap-3 sm:grid-cols-2">
-              <Button asChild><Link to="/voice/create">Create Room</Link></Button>
-              <Button asChild variant="outline"><Link to="/voice/rooms">Browse Rooms</Link></Button>
-              <Button asChild><Link to="/contacts">Contacts</Link></Button>
-              <Button asChild variant="outline"><Link to="/settings">Settings</Link></Button>
-            </CardContent>
-          </Card>
-          <div className="pt-2">
-            <MadeWithDyad />
-          </div>
-        </div>
+    <ChatLayout title="Discover">
+      <div className="p-4 sm:p-6 max-w-6xl mx-auto space-y-4">
+        <Tabs defaultValue="popular" className="w-full">
+          <TabsList className="w-full justify-start">
+            <TabsTrigger value="popular">Popular</TabsTrigger>
+            <TabsTrigger value="following">Following</TabsTrigger>
+            <TabsTrigger value="new">New</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="popular" className="space-y-4">
+            <BannerCarousel />
+            <ActionButtons />
+            <RoomsGrid rooms={rooms} />
+          </TabsContent>
+
+          <TabsContent value="following" className="space-y-4">
+            <BannerCarousel />
+            <ActionButtons />
+            <RoomsGrid rooms={rooms} />
+          </TabsContent>
+
+          <TabsContent value="new" className="space-y-4">
+            <BannerCarousel />
+            <ActionButtons />
+            <RoomsGrid rooms={rooms} />
+          </TabsContent>
+        </Tabs>
       </div>
     </ChatLayout>
   );
