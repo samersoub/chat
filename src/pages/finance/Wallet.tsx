@@ -1,4 +1,3 @@
-Coins">
 "use client";
 
 import React, { useMemo, useState } from "react";
@@ -52,81 +51,81 @@ const Wallet: React.FC = () => {
             <TabsTrigger value="logs">Logs</TabsTrigger>
           </TabsList>
 
-        <TabsContent value="recharge">
-          <Card>
-            <CardHeader><CardTitle>Recharge Coins</CardTitle></CardHeader>
-            <CardContent className="space-y-3">
-              <div className="grid gap-2">
-                <Label className="text-sm">Amount</Label>
-                <Input type="number" min={1} value={amount} onChange={(e) => setAmount(parseInt(e.target.value || "0"))} />
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  className="bg-black text-white hover:bg-black/80"
-                  onClick={() => {
-                    const b = EconomyService.rechargeCoins(amount, "stripe");
-                    setBal({ ...b });
-                    showSuccess(`Recharged ${amount} coins via Stripe`);
-                  }}
-                >
-                  Stripe (Visa/Mastercard)
-                </Button>
-                <Button
-                  className="bg-green-600 text-white hover:bg-green-700"
-                  onClick={() => {
-                    const b = EconomyService.rechargeCoins(amount, "play");
-                    setBal({ ...b });
-                    showSuccess(`Recharged ${amount} coins via Google Play`);
-                  }}
-                >
-                  Google Play Billing
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="exchange">
-          <Card>
-            <CardHeader><CardTitle>Exchange Diamonds → Coins</CardTitle></CardHeader>
-            <CardContent className="space-y-3">
-              <div className="grid gap-2">
-                <Label className="text-sm">Diamonds</Label>
-                <Input type="number" min={1} value={diamonds} onChange={(e) => setDiamonds(parseInt(e.target.value || "0"))} />
-              </div>
-              <div className="text-sm text-muted-foreground">Rate: 1 diamond = {rate} coin</div>
-              <Button
-                onClick={() => {
-                  try {
-                    const b = EconomyService.exchangeDiamondsToCoins(diamonds, rate);
-                    setBal({ ...b });
-                    showSuccess(`Exchanged ${diamonds} diamonds`);
-                  } catch (e: any) {
-                    showError(e.message || "Exchange failed");
-                  }
-                }}
-              >
-                Exchange
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="logs">
-          <Card>
-            <CardHeader><CardTitle>Recent Transactions</CardTitle></CardHeader>
-            <CardContent className="space-y-2">
-              {logs.length === 0 && <div className="text-sm text-muted-foreground">No logs yet.</div>}
-              {logs.map((l) => (
-                <div key={l.id} className="flex items-center justify-between text-sm border-b py-2">
-                  <div className="capitalize">{l.type}</div>
-                  <div>{l.amount}</div>
-                  <div className="text-muted-foreground">{new Date(l.at).toLocaleString()}</div>
+          <TabsContent value="recharge">
+            <Card>
+              <CardHeader><CardTitle>Recharge Coins</CardTitle></CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid gap-2">
+                  <Label className="text-sm">Amount</Label>
+                  <Input type="number" min={1} value={amount} onChange={(e) => setAmount(parseInt(e.target.value || "0"))} />
                 </div>
-              ))}
-            </CardContent>
-          </Card>
-        </TabsContent>
+                <div className="flex gap-2">
+                  <Button
+                    className="bg-black text-white hover:bg-black/80"
+                    onClick={() => {
+                      const b = EconomyService.rechargeCoins(amount, "stripe");
+                      setBal({ ...b });
+                      showSuccess(`Recharged ${amount} coins via Stripe`);
+                    }}
+                  >
+                    Stripe (Visa/Mastercard)
+                  </Button>
+                  <Button
+                    className="bg-green-600 text-white hover:bg-green-700"
+                    onClick={() => {
+                      const b = EconomyService.rechargeCoins(amount, "play");
+                      setBal({ ...b });
+                      showSuccess(`Recharged ${amount} coins via Google Play`);
+                    }}
+                  >
+                    Google Play Billing
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="exchange">
+            <Card>
+              <CardHeader><CardTitle>Exchange Diamonds → Coins</CardTitle></CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid gap-2">
+                  <Label className="text-sm">Diamonds</Label>
+                  <Input type="number" min={1} value={diamonds} onChange={(e) => setDiamonds(parseInt(e.target.value || "0"))} />
+                </div>
+                <div className="text-sm text-muted-foreground">Rate: 1 diamond = {rate} coin</div>
+                <Button
+                  onClick={() => {
+                    try {
+                      const b = EconomyService.exchangeDiamondsToCoins(diamonds, rate);
+                      setBal({ ...b });
+                      showSuccess(`Exchanged ${diamonds} diamonds`);
+                    } catch (e: any) {
+                      showError(e.message || "Exchange failed");
+                    }
+                  }}
+                >
+                  Exchange
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="logs">
+            <Card>
+              <CardHeader><CardTitle>Recent Transactions</CardTitle></CardHeader>
+              <CardContent className="space-y-2">
+                {logs.length === 0 && <div className="text-sm text-muted-foreground">No logs yet.</div>}
+                {logs.map((l) => (
+                  <div key={l.id} className="flex items-center justify-between text-sm border-b py-2">
+                    <div className="capitalize">{l.type}</div>
+                    <div>{l.amount}</div>
+                    <div className="text-muted-foreground">{new Date(l.at).toLocaleString()}</div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </div>
     </ChatLayout>
