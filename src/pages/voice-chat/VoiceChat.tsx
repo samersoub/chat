@@ -21,6 +21,7 @@ import { MusicPermissionsService } from "@/services/MusicPermissionsService";
 import ModeratorTools from "@/components/moderation/ModeratorTools";
 import ReportPanel from "@/components/moderation/ReportPanel";
 import MusicQueue from "@/components/music/MusicQueue";
+import EmojiPicker from "@/components/voice/EmojiPicker";
 
 const VoiceChat = () => {
   const { id } = useParams<{ id: string }>();
@@ -31,6 +32,7 @@ const VoiceChat = () => {
   const [giftOpen, setGiftOpen] = useState(false);
   const [activeGift, setActiveGift] = useState<GiftItem | null>(null);
   const [subscribeMode, setSubscribeMode] = useState<"auto" | "manual">("auto");
+  const [emojiOpen, setEmojiOpen] = useState(false);
 
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
   const rtcRef = React.useRef<WebRTCService | null>(null);
@@ -292,7 +294,7 @@ const VoiceChat = () => {
         }}
         onOpenChat={() => showSuccess("Open chat")}
         onSendGift={() => setGiftOpen(true)}
-        onEmoji={() => showSuccess("Emoji")}
+        onEmoji={() => setEmojiOpen(true)}
       />
 
       {/* Host microphone management panel */}
@@ -344,6 +346,15 @@ const VoiceChat = () => {
           <GiftAnimation type={activeGift.id} />
         </div>
       )}
+
+      <EmojiPicker
+        open={emojiOpen}
+        onOpenChange={setEmojiOpen}
+        onPick={(emoji) => {
+          showSuccess(`Sent ${emoji}`);
+          setEmojiOpen(false);
+        }}
+      />
     </div>
   );
 };
