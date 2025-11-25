@@ -15,6 +15,7 @@ import { VoiceChatService } from "@/services/VoiceChatService";
 import { showSuccess, showError } from "@/utils/toast";
 import { useLocale } from "@/contexts";
 import { EconomyService } from "@/services/EconomyService";
+import MusicQueue from "@/components/music/MusicQueue";
 
 const MusicLibrary: React.FC = () => {
   const { t } = useLocale();
@@ -182,6 +183,12 @@ const MusicLibrary: React.FC = () => {
             </div>
           </CardContent>
         </Card>
+
+        {roomId && (
+          <div className="pt-2">
+            <MusicQueue roomId={roomId} userId={"you"} />
+          </div>
+        )}
       </div>
     </ChatLayout>
   );

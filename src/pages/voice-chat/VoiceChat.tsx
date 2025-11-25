@@ -20,6 +20,7 @@ import SongRequestPanel from "@/components/music/SongRequestPanel";
 import { MusicPermissionsService } from "@/services/MusicPermissionsService";
 import ModeratorTools from "@/components/moderation/ModeratorTools";
 import ReportPanel from "@/components/moderation/ReportPanel";
+import MusicQueue from "@/components/music/MusicQueue";
 
 const VoiceChat = () => {
   const { id } = useParams<{ id: string }>();
@@ -310,6 +311,7 @@ const VoiceChat = () => {
         <div className="absolute right-4 top-24 space-y-3">
           <MusicControlBar roomId={id} userId={user.id} />
           <SongRequestPanel roomId={id} userId={user.id} />
+          <MusicQueue roomId={id} userId={user.id} />
           {/* Moderator tools for owner or moderators */}
           {(MusicPermissionsService.getRole(id, user.id) === "owner" ||
             MusicPermissionsService.getRole(id, user.id) === "moderator") && (
