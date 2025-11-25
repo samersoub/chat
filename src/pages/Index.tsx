@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import ChatLayout from "@/components/chat/ChatLayout";
 import DiscoverHeader from "@/components/discover/DiscoverHeader";
 import LuxBannerCarousel from "@/components/discover/LuxBannerCarousel";
@@ -16,6 +17,7 @@ const Index: React.FC = () => {
   const [rooms, setRooms] = React.useState<RoomData[]>([]);
   const [activeTab, setActiveTab] = React.useState<"popular" | "following">("popular");
   const [selectedTag, setSelectedTag] = React.useState<string>("الجميع");
+  const navigate = useNavigate();
 
   const { setLocale } = useLocale();
   React.useEffect(() => {
@@ -44,7 +46,11 @@ const Index: React.FC = () => {
         <LuxBannerCarousel />
         <ArabicQuickActions />
         <FilterTagsBar selected={selectedTag} onChange={setSelectedTag} />
-        <LuxRoomsGrid rooms={rooms} filter={selectedTag} />
+        <LuxRoomsGrid
+          rooms={rooms}
+          filter={selectedTag}
+          onEnter={(roomId) => navigate(`/voice/rooms/${roomId}/join`)}
+        />
       </div>
       <BottomTab />
     </ChatLayout>

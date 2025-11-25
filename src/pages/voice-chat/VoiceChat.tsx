@@ -30,6 +30,7 @@ const VoiceChat = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
+  const [loading, setLoading] = useState(true);
   const [micOn, setMicOn] = useState(false);
   const [wallpaper, setWallpaper] = useState<"royal" | "nebula" | "galaxy">("royal");
   const [giftOpen, setGiftOpen] = useState(false);
@@ -106,6 +107,37 @@ const VoiceChat = () => {
     [seatsState]
   );
 
+  React.useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 3000);
+    return () => clearTimeout(t);
+  }, []);
+
+  const handleExitRoom = () => {
+    if (id && user?.id) {
+      try {
+        const updatedRoom = VoiceChatService.leaveRoom(id, user.id);
+        if (updatedRoom.participants.length === 0) {
+          VoiceChatService.deleteRoom(id);
+        }
+      } catch {}
+    }
+    const rtc = (rtcRef.current ||= new WebRTCService());
+    rtc.stopMic();
+    if (audioRef.current) {
+      AudioManager.detach(audioRef.current);
+    }
+    setMicOn(false);
+    navigate("/");
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black text-white">
+        Loading Room...
+      </div>
+    );
+  }
+
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
       {/* Hidden audio element for local mic preview */}
@@ -145,23 +177,7 @@ const VoiceChat = () => {
         <Button
           variant="outline"
           className="bg-white/10 text-white border-white/20 hover:bg-white/20"
-          onClick={() => {
-            if (id && user?.id) {
-              try {
-                const updatedRoom = VoiceChatService.leaveRoom(id, user.id);
-                if (updatedRoom.participants.length === 0) {
-                  VoiceChatService.deleteRoom(id);
-                }
-              } catch {}
-            }
-            const rtc = (rtcRef.current ||= new WebRTCService());
-            rtc.stopMic();
-            if (audioRef.current) {
-              AudioManager.detach(audioRef.current);
-            }
-            setMicOn(false);
-            navigate(-1);
-          }}
+          onClick={handleExitRoom}
         >
           Exit Room
         </Button>

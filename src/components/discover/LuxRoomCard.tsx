@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 
 type Props = {
   room: RoomData;
+  onEnter?: (id: string) => void;
 };
 
 function codeToFlagEmoji(code: string): string {
@@ -17,13 +18,16 @@ function codeToFlagEmoji(code: string): string {
   return String.fromCodePoint(cc.charCodeAt(0) + base) + String.fromCodePoint(cc.charCodeAt(1) + base);
 }
 
-const LuxRoomCard: React.FC<Props> = ({ room }) => {
+const LuxRoomCard: React.FC<Props> = ({ room, onEnter }) => {
   const listeners = room.listenerCount;
   const hot = listeners > 100;
 
   return (
-    <div
-      className="relative rounded-xl overflow-hidden group aspect-[4/5] sm:aspect-[3/4] shadow"
+    <button
+      type="button"
+      onClick={() => onEnter?.(room.id)}
+      aria-label={`Enter room ${room.title}`}
+      className="relative rounded-xl overflow-hidden group aspect-[4/5] sm:aspect-[3/4] shadow cursor-pointer active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-primary"
       style={{
         backgroundImage: `url(${room.coverImage})`,
         backgroundSize: "cover",
@@ -68,7 +72,7 @@ const LuxRoomCard: React.FC<Props> = ({ room }) => {
           </div>
         </div>
       </div>
-    </div>
+    </button>
   );
 };
 

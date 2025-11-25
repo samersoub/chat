@@ -21,7 +21,7 @@ const countryMap: Record<string, string> = {
   YE: "اليمن",
 };
 
-const LuxRoomsGrid: React.FC<{ rooms: RoomData[]; filter: string }> = ({ rooms, filter }) => {
+const LuxRoomsGrid: React.FC<{ rooms: RoomData[]; filter: string; onEnter?: (id: string) => void }> = ({ rooms, filter, onEnter }) => {
   const items = rooms
     .map((room) => ({ room, countryName: countryMap[room.countryFlag] ?? room.countryFlag }))
     .filter((x) => (filter === "الجميع" ? true : x.countryName === filter));
@@ -33,7 +33,7 @@ const LuxRoomsGrid: React.FC<{ rooms: RoomData[]; filter: string }> = ({ rooms, 
   return (
     <div className="grid grid-cols-2 gap-3 sm:gap-4" dir="rtl">
       {items.map(({ room }) => (
-        <LuxRoomCard key={room.id} room={room} />
+        <LuxRoomCard key={room.id} room={room} onEnter={onEnter} />
       ))}
     </div>
   );
