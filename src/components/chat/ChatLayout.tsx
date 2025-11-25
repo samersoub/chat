@@ -30,9 +30,10 @@ import LanguageSwitch from "@/components/ui/LanguageSwitch";
 type ChatLayoutProps = {
   children: React.ReactNode;
   title?: string;
+  hideHeader?: boolean;
 };
 
-const ChatLayout: React.FC<ChatLayoutProps> = ({ children, title = "Lama Chat" }) => {
+const ChatLayout: React.FC<ChatLayoutProps> = ({ children, title = "Lama Chat", hideHeader = false }) => {
   const location = useLocation();
   const rooms = useMemo(() => VoiceChatService.listRooms(), []);
   const { t, dir } = useLocale();
@@ -147,25 +148,27 @@ const ChatLayout: React.FC<ChatLayoutProps> = ({ children, title = "Lama Chat" }
         </Sidebar>
 
         <SidebarInset className="flex flex-col">
-          <header
-            className={cn(
-              "sticky top-0 z-10",
-              "border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60"
-            )}
-          >
-            <div className="flex items-center h-12 px-3 gap-2">
-              <SidebarTrigger />
-              <h1 className="text-sm font-semibold">{title}</h1>
-              <div className="ml-auto flex items-center gap-2">
-                <Button asChild variant="ghost" size="sm" className="h-8">
-                  <Link to="/voice/create">
-                    <Plus className="h-4 w-4 mr-1" />
-                    {t("New")}
-                  </Link>
-                </Button>
+          {!hideHeader && (
+            <header
+              className={cn(
+                "sticky top-0 z-10",
+                "border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+              )}
+            >
+              <div className="flex items-center h-12 px-3 gap-2">
+                <SidebarTrigger />
+                <h1 className="text-sm font-semibold">{title}</h1>
+                <div className="ml-auto flex items-center gap-2">
+                  <Button asChild variant="ghost" size="sm" className="h-8">
+                    <Link to="/voice/create">
+                      <Plus className="h-4 w-4 mr-1" />
+                      {t("New")}
+                    </Link>
+                  </Button>
+                </div>
               </div>
-            </div>
-          </header>
+            </header>
+          )}
           <div className="flex-1">{children}</div>
         </SidebarInset>
       </SidebarProvider>
