@@ -8,6 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import GiftTray, { GiftItem } from "@/components/gifts/GiftTray";
 import GiftAnimation from "@/components/gifts/GiftAnimation";
 import { showSuccess } from "@/utils/toast";
+import { WebRTCService } from "@/services/WebRTCService";
+import { AudioManager } from "@/utils/AudioManager";
 
 const VoiceChat = () => {
   const { id } = useParams<{ id: string }>();
@@ -17,6 +19,9 @@ const VoiceChat = () => {
   const [wallpaper, setWallpaper] = useState<"royal" | "nebula" | "galaxy">("royal");
   const [giftOpen, setGiftOpen] = useState(false);
   const [activeGift, setActiveGift] = useState<GiftItem | null>(null);
+
+  const audioRef = React.useRef<HTMLAudioElement | null>(null);
+  const rtcRef = React.useRef<WebRTCService | null>(null);
 
   const seats = useMemo(
     () => [
@@ -44,6 +49,9 @@ const VoiceChat = () => {
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
+      {/* Hidden audio element for local mic preview */}
+      <audio ref={audioRef} className="hidden" />
+      
       {/* Animated mystical purple gradient background */}
       <div className="absolute inset-0 -z-10">
         {wallpaper === "royal" && (
@@ -110,9 +118,23 @@ const VoiceChat = () => {
       {/* Bottom control bar */}
       <ControlBar
         micOn={micOn}
-        onToggleMic={() => {
-          setMicOn((v) => !v);
-          showSuccess(!micOn ? "Microphone On" : "Microphone Off");
+        onToggleMic={async () => {
+          const rtc = (rtcRef.current ||= new WebRTCService());
+          if (!micOn) {
+            const stream = await rtc.getMicStream();
+            if (audioRef.current) {
+              AudioManager.attachStream(audioRef.current, stream);
+            }
+            setMicOn(true);
+            showSuccess("Microphone On");
+          } else {
+            rtc.stopMic();
+            if (audioRef.current) {
+              AudioManager.detach(audioRef.current);
+            }
+            setMicOn(false);
+            showSuccess("Microphone Off");
+          }
         }}
         onOpenChat={() => showSuccess("Open chat")}
         onSendGift={() => setGiftOpen(true)}

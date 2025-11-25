@@ -59,7 +59,7 @@ const Wallet: React.FC = () => {
                   <Label className="text-sm">Amount</Label>
                   <Input type="number" min={1} value={amount} onChange={(e) => setAmount(parseInt(e.target.value || "0"))} />
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <Button
                     className="bg-black text-white hover:bg-black/80"
                     onClick={() => {
@@ -79,6 +79,36 @@ const Wallet: React.FC = () => {
                     }}
                   >
                     Google Play Billing
+                  </Button>
+                  <Button
+                    className="bg-blue-600 text-white hover:bg-blue-700"
+                    onClick={() => {
+                      const b = EconomyService.rechargeCoins(amount, "paypal");
+                      setBal({ ...b });
+                      showSuccess(`Recharged ${amount} coins via PayPal`);
+                    }}
+                  >
+                    PayPal
+                  </Button>
+                  <Button
+                    className="bg-purple-600 text-white hover:bg-purple-700"
+                    onClick={() => {
+                      const b = EconomyService.rechargeCoins(amount, "stcpay");
+                      setBal({ ...b });
+                      showSuccess(`Recharged ${amount} coins via STC Pay`);
+                    }}
+                  >
+                    STC Pay
+                  </Button>
+                  <Button
+                    className="bg-amber-600 text-white hover:bg-amber-700"
+                    onClick={() => {
+                      const b = EconomyService.rechargeCoins(amount, "carrier");
+                      setBal({ ...b });
+                      showSuccess(`Recharged ${amount} coins via Carrier Billing`);
+                    }}
+                  >
+                    Carrier Billing
                   </Button>
                 </div>
               </CardContent>

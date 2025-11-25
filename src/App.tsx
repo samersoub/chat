@@ -25,6 +25,7 @@ import Wallet from "./pages/finance/Wallet";
 import HostAgency from "./pages/agency/HostAgency";
 import RechargeAgency from "./pages/agency/RechargeAgency";
 import Store from "./pages/store/Store";
+import Hosts from "./pages/hosts/Hosts";
 import Moments from "./pages/Moments";
 import Messages from "./pages/Messages";
 
@@ -62,6 +63,7 @@ const App = () => (
           {/* Social */}
           <Route path="/moments" element={<Moments />} />
           <Route path="/messages" element={<Messages />} />
+          <Route path="/hosts" element={<Hosts />} />
           {/* Contacts */}
           <Route path="/contacts" element={<Contacts />} />
           <Route path="/contacts/invite" element={<InviteFriends />} />

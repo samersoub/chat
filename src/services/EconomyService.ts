@@ -49,7 +49,7 @@ export const EconomyService = {
   },
 
   // Finance
-  rechargeCoins(amount: number, channel: "stripe" | "play"): Balance {
+  rechargeCoins(amount: number, channel: "stripe" | "play" | "paypal" | "stcpay" | "carrier"): Balance {
     const bal = this.getBalance();
     bal.coins += amount;
     this.saveBalance(bal);
