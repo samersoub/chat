@@ -15,6 +15,7 @@ import { RecordingService } from "@/services/RecordingService";
 import { AuthService } from "@/services/AuthService";
 import { VoiceChatService } from "@/services/VoiceChatService";
 import MicManager from "@/components/voice/MicManager";
+import SongRequestsPanel from "@/components/music/SongRequestsPanel";
 
 const VoiceChat = () => {
   const { id } = useParams<{ id: string }>();
@@ -289,8 +290,9 @@ const VoiceChat = () => {
         onEmoji={() => showSuccess("Emoji")}
       />
 
-      {/* Host microphone management panel */}
-      <div className="absolute right-4 bottom-24">
+      {/* Host microphone management panel + music requests */}
+      <div className="absolute right-4 bottom-24 flex flex-col gap-3">
+        <SongRequestsPanel roomId={id || "demo"} currentUid={user?.id || "you"} isModerator={isHost} />
         {isHost && (
           <MicManager
             roomId={id || "demo"}
