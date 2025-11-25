@@ -8,6 +8,8 @@ import NotFound from "./pages/NotFound";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import PhoneVerification from "./pages/auth/PhoneVerification";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import AdminLogin from "./pages/admin/AdminLogin";
 import RoomList from "./pages/voice-chat/RoomList";
 import CreateRoom from "./pages/voice-chat/CreateRoom";
 import VoiceChat from "./pages/voice-chat/VoiceChat";
@@ -52,6 +54,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             {/* Admin Panel */}
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/login" element={<AdminLogin />} />
             {/* ADDED: Admin Status */}
             <Route path="/admin/status" element={<AdminStatus />} />
             <Route path="/admin/users" element={<AdminUsers />} />
@@ -62,6 +65,7 @@ const App = () => (
             <Route path="/auth/login" element={<Login />} />
             <Route path="/auth/register" element={<Register />} />
             <Route path="/auth/verify" element={<PhoneVerification />} />
+            <Route path="/auth/forgot" element={<ForgotPassword />} />
             {/* Voice Chat */}
             <Route path="/voice/rooms" element={<RoomList />} />
             <Route path="/voice/create" element={<CreateRoom />} />

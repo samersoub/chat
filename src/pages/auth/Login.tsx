@@ -12,17 +12,17 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPwd] = useState("");
   return (
-    <ChatLayout title="Login">
+    <ChatLayout title="دندنة شات • Login">
       <div className="p-6 max-w-sm mx-auto">
-        <Card className="w-full">
+        <Card className="w-full border-amber-200">
           <CardHeader>
-            <CardTitle>Login</CardTitle>
+            <CardTitle className="bg-gradient-to-r from-amber-500 to-yellow-500 bg-clip-text text-transparent">Login</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <Input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />
             <Input type="password" placeholder="Password" value={password} onChange={e => setPwd(e.target.value)} />
             <Button
-              className="w-full"
+              className="w-full bg-gradient-to-r from-amber-500 to-yellow-500 text-white"
               onClick={() => {
                 try {
                   AuthService.login(email, password);
@@ -35,8 +35,11 @@ const Login = () => {
             >
               Continue
             </Button>
-            <div className="text-sm text-muted-foreground">
-              New here? <Link to="/auth/register" className="underline">Create an account</Link>
+            <div className="text-sm text-muted-foreground flex items-center justify-between">
+              <span>
+                New here? <Link to="/auth/register" className="underline">Create an account</Link>
+              </span>
+              <Link to="/auth/forgot" className="underline">Forgot password?</Link>
             </div>
           </CardContent>
         </Card>

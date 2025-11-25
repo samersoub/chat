@@ -1,19 +1,30 @@
 "use client";
 
 import React from "react";
-import { ChatRoom } from "@/models/ChatRoom";
 import LuxRoomCard from "./LuxRoomCard";
+import { RoomData } from "@/models/RoomData";
 
-const countries = ["الأردن", "سوريا", "مصر", "العراق", "السعودية", "المغرب", "الجزائر", "تونس", "ليبيا", "لبنان", "فلسطين"];
+const countryMap: Record<string, string> = {
+  JO: "الأردن",
+  SY: "سوريا",
+  EG: "مصر",
+  IQ: "العراق",
+  SA: "السعودية",
+  MA: "المغرب",
+  DZ: "الجزائر",
+  TN: "تونس",
+  LY: "ليبيا",
+  LB: "لبنان",
+  PS: "فلسطين",
+  TR: "تركيا",
+  DE: "ألمانيا",
+  YE: "اليمن",
+};
 
-function mapCountry(id: string): string {
-  const n = id.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
-  return countries[n % countries.length];
-}
-
-const LuxRoomsGrid: React.FC<{ rooms: ChatRoom[]; filter: string }> = ({ rooms, filter }) => {
-  const items = rooms.map((r) => ({ room: r, country: mapCountry(r.id) }))
-    .filter((x) => (filter === "الجميع" ? true : x.country === filter));
+const LuxRoomsGrid: React.FC<{ rooms: RoomData[]; filter: string }> = ({ rooms, filter }) => {
+  const items = rooms
+    .map((room) => ({ room, countryName: countryMap[room.countryFlag] ?? room.countryFlag }))
+    .filter((x) => (filter === "الجميع" ? true : x.countryName === filter));
 
   if (items.length === 0) {
     return <div className="text-sm text-muted-foreground">لا توجد غرف حالياً.</div>;
@@ -21,8 +32,8 @@ const LuxRoomsGrid: React.FC<{ rooms: ChatRoom[]; filter: string }> = ({ rooms, 
 
   return (
     <div className="grid grid-cols-2 gap-3 sm:gap-4" dir="rtl">
-      {items.map(({ room, country }) => (
-        <LuxRoomCard key={room.id} room={room} country={country} />
+      {items.map(({ room }) => (
+        <LuxRoomCard key={room.id} room={room} />
       ))}
     </div>
   );

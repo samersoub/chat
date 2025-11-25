@@ -11,20 +11,22 @@ const Register = () => {
   const nav = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [countryCode, setCountryCode] = useState("");
   const [password, setPwd] = useState("");
   return (
-    <ChatLayout title="Register">
+    <ChatLayout title="دندنة شات • Register">
       <div className="p-6 max-w-sm mx-auto">
-        <Card className="w-full">
+        <Card className="w-full border-amber-200">
           <CardHeader>
-            <CardTitle>Create account</CardTitle>
+            <CardTitle className="bg-gradient-to-r from-amber-500 to-yellow-500 bg-clip-text text-transparent">Create account</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <Input placeholder="Name" value={name} onChange={e => setName(e.target.value)} />
             <Input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />
+            <Input placeholder="Country Code (optional)" value={countryCode} onChange={e => setCountryCode(e.target.value)} />
             <Input type="password" placeholder="Password" value={password} onChange={e => setPwd(e.target.value)} />
             <Button
-              className="w-full"
+              className="w-full bg-gradient-to-r from-amber-500 to-yellow-500 text-white"
               onClick={() => {
                 try {
                   AuthService.register(email, password, name);

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -23,6 +23,14 @@ import { Activity, BarChart3, Home, Users, Mic, FileChartColumn, Settings } from
 const AdminLayout: React.FC<{ children: React.ReactNode; title?: string }> = ({ children, title = "Admin" }) => {
   const loc = useLocation();
   const is = (path: string) => loc.pathname === path;
+  const nav = useNavigate();
+
+  React.useEffect(() => {
+    const token = localStorage.getItem("admin:token");
+    if (!token) {
+      nav("/admin/login");
+    }
+  }, [nav]);
 
   return (
     <SidebarProvider>
