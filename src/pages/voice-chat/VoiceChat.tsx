@@ -366,6 +366,10 @@ const VoiceChat = () => {
         onOpenChange={setEmojiOpen}
         onPick={(emoji) => {
           showSuccess(`Sent ${emoji}`);
+          // NEW: also send emoji to room chat
+          if (id && user?.id) {
+            LocalChatService.send(id, user.id, emoji, "text");
+          }
           setEmojiOpen(false);
         }}
       />
