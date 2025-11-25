@@ -16,6 +16,7 @@ import { showSuccess, showError } from "@/utils/toast";
 import { useLocale } from "@/contexts";
 import { EconomyService } from "@/services/EconomyService";
 import MusicQueue from "@/components/music/MusicQueue";
+import SpotifyConfigDialog from "@/components/music/SpotifyConfigDialog";
 
 const MusicLibrary: React.FC = () => {
   const { t } = useLocale();
@@ -24,18 +25,12 @@ const MusicLibrary: React.FC = () => {
   const categories = MusicService.getCategories();
   const playlists = MusicService.getPlaylists();
   const [activeCat, setActiveCat] = useState<string>(categories[0]?.key ?? "pop");
-  const spotify = MusicService.getSpotifyConfig();
+  const [spotify, setSpotify] = useState(MusicService.getSpotifyConfig());
   const [volume, setVolume] = useState<number>(MusicService.getRoomMusic(roomId || rooms[0]?.id || "demo").volume);
+  const [cfgOpen, setCfgOpen] = useState(false);
 
   const applySpotifyConfig = () => {
-    const clientId = prompt("Spotify Client ID") || "";
-    const clientSecret = prompt("Spotify Client Secret") || "";
-    if (!clientId || !clientSecret) {
-      showError("Spotify config not set");
-      return;
-    }
-    MusicService.setSpotifyConfig({ clientId, clientSecret });
-    showSuccess("Spotify configured");
+    setCfgOpen(true);
   };
 
   const canControl = roomId ? MusicPermissionsService.canControl(roomId) : false;
@@ -190,6 +185,18 @@ const MusicLibrary: React.FC = () => {
           </div>
         )}
       </div>
+      {/* Spotify config dialog */}
+      <SpotifyConfigDialog
+        open={cfgOpen}
+        onOpenChange={setCfgOpen}
+        initial={spotify ?? undefined}
+        onSave={(cfg) => {
+          MusicService.setSpotifyConfig(cfg);
+          setSpotify(cfg);
+          showSuccess("Spotify configured");
+          setCfgOpen(false);
+        }}
+      />
     </ChatLayout>
   );
 };

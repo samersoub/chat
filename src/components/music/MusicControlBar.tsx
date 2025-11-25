@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MusicService } from "@/services/MusicService";
@@ -8,8 +8,12 @@ import { MusicPermissionsService } from "@/services/MusicPermissionsService";
 import { showError, showSuccess } from "@/utils/toast";
 
 const MusicControlBar: React.FC<{ roomId: string; userId: string }> = ({ roomId, userId }) => {
-  const st = MusicService.getRoomMusic(roomId);
+  const [st, setSt] = useState(MusicService.getRoomMusic(roomId));
   const canControl = MusicPermissionsService.canControl(roomId, userId);
+
+  useEffect(() => {
+    setSt(MusicService.getRoomMusic(roomId));
+  }, [roomId]);
 
   return (
     <Card className="w-[360px]">
@@ -29,8 +33,15 @@ const MusicControlBar: React.FC<{ roomId: string; userId: string }> = ({ roomId,
                 showError("No permission");
                 return;
               }
-              const next = st.isPlaying ? MusicService.pause(roomId) : (st.currentTrack ? MusicService.play(roomId, st.currentTrack) : st);
-              showSuccess(st.isPlaying ? "Paused" : "Playing");
+              if (st.isPlaying) {
+                MusicService.pause(roomId);
+                setSt(MusicService.getRoomMusic(roomId));
+                showSuccess("Paused");
+              } else if (st.currentTrack) {
+                MusicService.play(roomId, st.currentTrack);
+                setSt(MusicService.getRoomMusic(roomId));
+                showSuccess("Playing");
+              }
             }}
           >
             {st.isPlaying ? "Pause" : "Play"}
@@ -43,6 +54,7 @@ const MusicControlBar: React.FC<{ roomId: string; userId: string }> = ({ roomId,
                 return;
               }
               MusicService.skip(roomId);
+              setSt(MusicService.getRoomMusic(roomId));
               showSuccess("Skipped");
             }}
           >
