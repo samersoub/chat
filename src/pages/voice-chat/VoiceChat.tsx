@@ -15,6 +15,8 @@ import { RecordingService } from "@/services/RecordingService";
 import { AuthService } from "@/services/AuthService";
 import { VoiceChatService } from "@/services/VoiceChatService";
 import MicManager from "@/components/voice/MicManager";
+import MusicControlBar from "@/components/music/MusicControlBar";
+import SongRequestPanel from "@/components/music/SongRequestPanel";
 
 const VoiceChat = () => {
   const { id } = useParams<{ id: string }>();
@@ -299,6 +301,14 @@ const VoiceChat = () => {
           />
         )}
       </div>
+
+      {/* Music controls and requests */}
+      {id && user?.id && (
+        <div className="absolute right-4 top-24 space-y-3">
+          <MusicControlBar roomId={id} userId={user.id} />
+          <SongRequestPanel roomId={id} userId={user.id} />
+        </div>
+      )}
 
       {/* Gift dialog */}
       <Dialog open={giftOpen} onOpenChange={setGiftOpen}>
