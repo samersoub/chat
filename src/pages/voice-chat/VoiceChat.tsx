@@ -17,6 +17,9 @@ import { VoiceChatService } from "@/services/VoiceChatService";
 import MicManager from "@/components/voice/MicManager";
 import MusicControlBar from "@/components/music/MusicControlBar";
 import SongRequestPanel from "@/components/music/SongRequestPanel";
+import { MusicPermissionsService } from "@/services/MusicPermissionsService";
+import ModeratorTools from "@/components/moderation/ModeratorTools";
+import ReportPanel from "@/components/moderation/ReportPanel";
 
 const VoiceChat = () => {
   const { id } = useParams<{ id: string }>();
@@ -307,6 +310,13 @@ const VoiceChat = () => {
         <div className="absolute right-4 top-24 space-y-3">
           <MusicControlBar roomId={id} userId={user.id} />
           <SongRequestPanel roomId={id} userId={user.id} />
+          {/* Moderator tools for owner or moderators */}
+          {(MusicPermissionsService.getRole(id, user.id) === "owner" ||
+            MusicPermissionsService.getRole(id, user.id) === "moderator") && (
+            <ModeratorTools roomId={id} userId={user.id} />
+          )}
+          {/* Reports panel accessible to all */}
+          <ReportPanel roomId={id} userId={user.id} />
         </div>
       )}
 
