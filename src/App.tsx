@@ -35,6 +35,7 @@ import RateMatch from "./pages/matching/RateMatch";
 import Earnings from "./pages/finance/Earnings";
 import Withdrawal from "./pages/finance/Withdrawal";
 import CoinPurchase from "./pages/finance/CoinPurchase";
+import MusicLibrary from "./pages/music/MusicLibrary";
 
 const queryClient = new QueryClient();
 
@@ -70,6 +71,8 @@ const App = () => (
             <Route path="/withdrawal" element={<Withdrawal />} />
             {/* Coin purchase */}
             <Route path="/coins" element={<CoinPurchase />} />
+            {/* Music */}
+            <Route path="/music" element={<MusicLibrary />} />
             {/* Agency */}
             <Route path="/agency/host" element={<HostAgency />} />
             <Route path="/agency/recharge" element={<RechargeAgency />} />

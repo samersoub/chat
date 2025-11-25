@@ -80,6 +80,15 @@ const Index = () => {
               <Button asChild variant="outline"><Link to="/coins">Open</Link></Button>
             </CardContent>
           </Card>
+          <Card>
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <div className="font-semibold">Music Library</div>
+                <div className="text-sm text-muted-foreground">Browse playlists and play/request tracks</div>
+              </div>
+              <Button asChild variant="outline"><Link to="/music">Open</Link></Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
       <BottomTab />
