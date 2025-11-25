@@ -29,6 +29,11 @@ import Hosts from "./pages/hosts/Hosts";
 import Moments from "./pages/Moments";
 import Messages from "./pages/Messages";
 import { LocaleProvider } from "@/contexts";
+import Matching from "./pages/matching/Matching";
+import PrivateCall from "./pages/matching/PrivateCall";
+import RateMatch from "./pages/matching/RateMatch";
+import Earnings from "./pages/finance/Earnings";
+import Withdrawal from "./pages/finance/Withdrawal";
 
 const queryClient = new QueryClient();
 
@@ -59,6 +64,9 @@ const App = () => (
             {/* Finance & Store */}
             <Route path="/wallet" element={<Wallet />} />
             <Route path="/store" element={<Store />} />
+            {/* Earnings & Withdrawal */}
+            <Route path="/earnings" element={<Earnings />} />
+            <Route path="/withdrawal" element={<Withdrawal />} />
             {/* Agency */}
             <Route path="/agency/host" element={<HostAgency />} />
             <Route path="/agency/recharge" element={<RechargeAgency />} />
@@ -72,6 +80,10 @@ const App = () => (
             {/* Profile */}
             <Route path="/profile" element={<Profile />} />
             <Route path="/settings" element={<Settings />} />
+            {/* Matching */}
+            <Route path="/matching" element={<Matching />} />
+            <Route path="/matching/call/:id" element={<PrivateCall />} />
+            <Route path="/matching/rate/:id" element={<RateMatch />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

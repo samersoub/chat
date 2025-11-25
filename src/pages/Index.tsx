@@ -50,6 +50,28 @@ const Index = () => {
 
         {/* Gift Leaderboard */}
         <GiftLeaderboard />
+
+        {/* Quick actions */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Card>
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <div className="font-semibold">Smart Matching</div>
+                <div className="text-sm text-muted-foreground">Find compatible users and start private calls</div>
+              </div>
+              <Button asChild><Link to="/matching">Open</Link></Button>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <div className="font-semibold">Earnings</div>
+                <div className="text-sm text-muted-foreground">Claim daily bonus, watch ads, and more</div>
+              </div>
+              <Button asChild variant="outline"><Link to="/earnings">Open</Link></Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
       <BottomTab />
     </ChatLayout>
