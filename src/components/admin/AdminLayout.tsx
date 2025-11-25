@@ -18,7 +18,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { BarChart3, Home, Users, Mic, FileChartColumn, Settings } from "lucide-react";
+import { Activity, BarChart3, Home, Users, Mic, FileChartColumn, Settings } from "lucide-react";
 
 const AdminLayout: React.FC<{ children: React.ReactNode; title?: string }> = ({ children, title = "Admin" }) => {
   const loc = useLocation();
@@ -41,6 +41,11 @@ const AdminLayout: React.FC<{ children: React.ReactNode; title?: string }> = ({ 
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={is("/admin")}>
                     <Link to="/admin"><Home /> Dashboard</Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={is("/admin/status")}>
+                    <Link to="/admin/status"><Activity /> Status</Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
