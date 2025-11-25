@@ -22,6 +22,9 @@ import ModeratorTools from "@/components/moderation/ModeratorTools";
 import ReportPanel from "@/components/moderation/ReportPanel";
 import MusicQueue from "@/components/music/MusicQueue";
 import EmojiPicker from "@/components/voice/EmojiPicker";
+import ChatInputSheet from "@/components/voice/ChatInputSheet";
+import { LocalChatService } from "@/services/LocalChatService";
+import { Message } from "@/models/Message";
 
 const VoiceChat = () => {
   const { id } = useParams<{ id: string }>();
@@ -33,6 +36,8 @@ const VoiceChat = () => {
   const [activeGift, setActiveGift] = useState<GiftItem | null>(null);
   const [subscribeMode, setSubscribeMode] = useState<"auto" | "manual">("auto");
   const [emojiOpen, setEmojiOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
 
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
   const rtcRef = React.useRef<WebRTCService | null>(null);
@@ -77,6 +82,15 @@ const VoiceChat = () => {
     }
   }, [micOn, seatsState, id, user?.id]);
 
+  // Load and subscribe to room messages
+  React.useEffect(() => {
+    if (!id) return;
+    const unsub = LocalChatService.on(id, (msgs) => setMessages(msgs));
+    return () => {
+      unsub?.();
+    };
+  }, [id]);
+
   const seats = React.useMemo(
     () =>
       (seatsState.length ? seatsState : Array.from({ length: 8 }, (_, i) => ({ index: i, locked: false, muted: false, speaking: false } as any))).map(
@@ -90,16 +104,6 @@ const VoiceChat = () => {
         })
       ),
     [seatsState]
-  );
-
-  const messages = useMemo(
-    () => [
-      { id: "m1", user: "Host", text: "Welcome to the room!" },
-      { id: "m2", user: "Maya", text: "Hi everyone 👋" },
-      { id: "m3", user: "Omar", text: "Muted for a sec." },
-      { id: "m4", user: "Ali", text: "Love this song 🔥" },
-    ],
-    []
   );
 
   return (
@@ -254,7 +258,7 @@ const VoiceChat = () => {
 
       {/* Bottom-left chat overlay */}
       <div className="absolute left-4 bottom-24">
-        <ChatOverlay messages={messages} />
+        <ChatOverlay messages={messages} currentUserId={user?.id} />
       </div>
 
       {/* Bottom control bar */}
@@ -292,7 +296,7 @@ const VoiceChat = () => {
             showSuccess("Microphone Off");
           }
         }}
-        onOpenChat={() => showSuccess("Open chat")}
+        onOpenChat={() => setChatOpen(true)}
         onSendGift={() => setGiftOpen(true)}
         onEmoji={() => setEmojiOpen(true)}
       />
@@ -345,6 +349,16 @@ const VoiceChat = () => {
         <div className="absolute inset-0 z-40 pointer-events-none flex items-center justify-center">
           <GiftAnimation type={activeGift.id} />
         </div>
+      )}
+
+      {/* Chat input sheet */}
+      {id && user?.id && (
+        <ChatInputSheet
+          open={chatOpen}
+          onOpenChange={setChatOpen}
+          roomId={id}
+          senderId={user.id}
+        />
       )}
 
       <EmojiPicker

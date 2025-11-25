@@ -2,14 +2,14 @@
 
 import React, { useEffect, useRef } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Message } from "@/models/Message";
 
-type ChatMessage = {
-  id: string;
-  user: string;
-  text: string;
+type Props = {
+  messages: Message[];
+  currentUserId?: string;
 };
 
-const ChatOverlay: React.FC<{ messages: ChatMessage[] }> = ({ messages }) => {
+const ChatOverlay: React.FC<Props> = ({ messages, currentUserId }) => {
   const ref = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (ref.current) {
@@ -27,8 +27,15 @@ const ChatOverlay: React.FC<{ messages: ChatMessage[] }> = ({ messages }) => {
           <div className="space-y-2">
             {messages.map((m) => (
               <div key={m.id} className="text-xs sm:text-sm text-white/90">
-                <span className="font-semibold">{m.user}: </span>
-                <span className="text-white/80">{m.text}</span>
+                <span className="font-semibold">
+                  {m.type === "system"
+                    ? "System"
+                    : m.senderId === currentUserId
+                    ? "You"
+                    : "User"}
+                  :{" "}
+                </span>
+                <span className="text-white/80">{m.content}</span>
               </div>
             ))}
           </div>
