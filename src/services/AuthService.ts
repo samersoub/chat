@@ -1,8 +1,27 @@
 import { User } from "@/models/User";
 import { supabase, isSupabaseReady, safe } from "@/services/db/supabaseClient";
 import { ProfileService, type Profile } from "@/services/ProfileService";
+import { NotificationHelper } from "@/utils/NotificationHelper";
+import { hashSync, compareSync } from "bcryptjs";
 
 const KEY = "auth:user";
+// Simple in-memory rate limiter
+const rate = {
+  attempts: new Map<string, { count: number; resetAt: number }>(),
+  isLimited(key: string, limit = 5, windowMs = 30_000) {
+    const now = Date.now();
+    const entry = this.attempts.get(key);
+    if (!entry || now > entry.resetAt) {
+      this.attempts.set(key, { count: 1, resetAt: now + windowMs });
+      return false;
+    }
+    entry.count += 1;
+    return entry.count > limit;
+  },
+  reset(key: string) {
+    this.attempts.delete(key);
+  },
+};
 
 export const AuthService = {
   getCurrentUser(): User | null {
@@ -10,17 +29,33 @@ export const AuthService = {
     return raw ? (JSON.parse(raw) as User) : null;
   },
 
+  async getAccessToken(): Promise<string | null> {
+    if (!(isSupabaseReady && supabase)) return null;
+    const { data } = await supabase.auth.getSession();
+    return data.session?.access_token || null;
+  },
+
+  async getTokenExpiry(): Promise<Date | null> {
+    if (!(isSupabaseReady && supabase)) return null;
+    const { data } = await supabase.auth.getSession();
+    const exp = data.session?.expires_at;
+    return exp ? new Date(exp * 1000) : null;
+  },
+
   // Existing demo register (local only) remains for fallback
   register(email: string, password: string, name?: string): User {
-    // demo only: store a single user locally (no real password handling)
+    if (rate.isLimited(`register:${email}`)) {
+      throw new Error("Too many attempts. Please wait and try again.");
+    }
     const user: User = {
       id: crypto.randomUUID(),
       email,
       name,
       createdAt: new Date().toISOString(),
     };
-    localStorage.setItem(KEY, JSON.stringify({ ...user, password }));
-    // Initialize local profile with coins=100 if not using Supabase
+    // Store hashed password in local demo
+    const password_hash = hashSync(password, 10);
+    localStorage.setItem(KEY, JSON.stringify({ ...user, password_hash }));
     const p: Profile = {
       id: user.id,
       username: (name || email.split("@")[0]).toLowerCase(),
@@ -35,15 +70,19 @@ export const AuthService = {
       last_login: null,
     };
     void ProfileService.upsertProfile(p);
+    void NotificationHelper.notify("Welcome", "Thanks for registering! You received 100 coins.", { meta: { kind: "welcome" } });
+    rate.reset(`register:${email}`);
     return user;
   },
 
-  // Unified login (email or username) using Supabase if available, otherwise local
   async loginUnified(login: string, password: string): Promise<User> {
+    if (rate.isLimited(`login:${login}`)) {
+      throw new Error("Too many login attempts. Please wait and try again.");
+    }
     if (isSupabaseReady && supabase) {
       const email = login.includes("@")
         ? login
-        : (await ProfileService.getByUsername(login))?.email || login; // if username not found, attempt as email
+        : (await ProfileService.getByUsername(login))?.email || login;
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error || !data.user) throw new Error(error?.message || "Invalid credentials");
       const u = data.user;
@@ -70,17 +109,30 @@ export const AuthService = {
         createdAt: prof.created_at,
       };
       localStorage.setItem(KEY, JSON.stringify(user));
+      void NotificationHelper.notify("Login Successful", `Welcome back, ${prof.username}!`, { meta: { kind: "security" } });
+      rate.reset(`login:${login}`);
       return user;
     }
-    // Fallback to local demo
-    return this.login(login, password);
+    // Local fallback
+    const raw = localStorage.getItem(KEY);
+    if (!raw) throw new Error("No account found. Please register first.");
+    const stored = JSON.parse(raw) as User & { password_hash?: string; password?: string };
+    const ok = stored.password_hash ? compareSync(password, stored.password_hash) : stored.password === password;
+    if (!(stored.email === login || stored.name === login) || !ok) {
+      throw new Error("Invalid credentials");
+    }
+    localStorage.setItem(KEY, JSON.stringify(stored));
+    void NotificationHelper.notify("Login Successful", `Welcome back, ${stored.name || "user"}!`, { meta: { kind: "security" } });
+    rate.reset(`login:${login}`);
+    return stored as User;
   },
 
-  // Extended register to meet requirements (username, phone, optional image)
   async registerExtended(username: string, email: string, password: string, phone: string, imageFile?: File): Promise<User> {
     username = username.trim().toLowerCase();
+    if (rate.isLimited(`register:${email}`) || rate.isLimited(`register:${username}`)) {
+      throw new Error("Too many attempts. Please wait and try again.");
+    }
     if (isSupabaseReady && supabase) {
-      // Uniqueness checks
       const existingUser = await ProfileService.getByUsername(username);
       if (existingUser) throw new Error("Username already exists");
       const { data: byEmail } = await supabase.from("profiles").select("id").eq("email", email).maybeSingle?.() as any;
@@ -107,7 +159,6 @@ export const AuthService = {
         last_login: null,
       };
       await ProfileService.upsertProfile(created);
-      // Optional image upload
       if (imageFile) {
         await ProfileService.uploadProfileImage(u.id, imageFile);
       }
@@ -120,9 +171,12 @@ export const AuthService = {
         createdAt: created.created_at,
       };
       localStorage.setItem(KEY, JSON.stringify(user));
+      void NotificationHelper.notify("Welcome", "Registration successful! Please verify your email.", { meta: { kind: "welcome" } });
+      rate.reset(`register:${email}`);
+      rate.reset(`register:${username}`);
       return user;
     }
-    // Local fallback: create local user & profile
+    // Local fallback
     const user: User = {
       id: crypto.randomUUID(),
       email,
@@ -130,7 +184,8 @@ export const AuthService = {
       phone,
       createdAt: new Date().toISOString(),
     };
-    localStorage.setItem(KEY, JSON.stringify({ ...user, password }));
+    const password_hash = hashSync(password, 10);
+    localStorage.setItem(KEY, JSON.stringify({ ...user, password_hash }));
     const p: Profile = {
       id: user.id,
       username,
@@ -145,26 +200,35 @@ export const AuthService = {
       last_login: null,
     };
     await ProfileService.upsertProfile(p);
+    void NotificationHelper.notify("Welcome", "Thanks for registering! You received 100 coins.", { meta: { kind: "welcome" } });
+    rate.reset(`register:${email}`);
+    rate.reset(`register:${username}`);
     return user;
   },
 
   login(email: string, password: string): User {
+    if (rate.isLimited(`login:${email}`)) {
+      throw new Error("Too many login attempts. Please wait and try again.");
+    }
     const raw = localStorage.getItem(KEY);
     if (!raw) throw new Error("No account found. Please register first.");
-    const stored = JSON.parse(raw) as User & { password?: string };
-    if (stored.email !== email || stored.password !== password) {
+    const stored = JSON.parse(raw) as User & { password_hash?: string; password?: string };
+    const ok = stored.password_hash ? compareSync(password, stored.password_hash) : stored.password === password;
+    if (stored.email !== email || !ok) {
       throw new Error("Invalid credentials");
     }
     localStorage.setItem(KEY, JSON.stringify(stored));
+    void NotificationHelper.notify("Login Successful", `Welcome back, ${stored.name || "user"}!`, { meta: { kind: "security" } });
+    rate.reset(`login:${email}`);
     return stored as User;
   },
 
   logout() {
     localStorage.removeItem(KEY);
-    // Supabase sign out (fire-and-forget)
     if (isSupabaseReady && supabase) {
       void safe(supabase.auth.signOut());
     }
+    void NotificationHelper.notify("Logged Out", "You have been signed out.", { meta: { kind: "security" } });
   },
 
   async changePassword(currentPassword: string, newPassword: string): Promise<void> {
@@ -178,6 +242,7 @@ export const AuthService = {
     if (reauth.error) throw new Error("Current password is incorrect");
     const upd = await supabase.auth.updateUser({ password: newPassword });
     if (upd.error) throw new Error(upd.error.message);
+    void NotificationHelper.notify("Password Changed", "Your password has been updated.", { meta: { kind: "security" } });
   },
 
   verifyPhone(code: string): boolean {

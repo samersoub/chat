@@ -1,163 +1,99 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
-import { VoiceChatService } from "@/services/VoiceChatService";
-import { MusicService } from "@/services/MusicService";
-import { ReportService } from "@/services/ReportService";
-import { showSuccess } from "@/utils/toast";
-
-type ApprovalPoint = { label: string; count: number };
-type AutoAction = { type: string; target?: string; at: number; roomId: string; priority: string };
-
-function computeMetrics() {
-  const now = Date.now();
-  const dayAgo = now - 24 * 60 * 60 * 1000;
-  const rooms = VoiceChatService.listRooms();
-
-  let participantsTotal = 0;
-  let queueTotal = 0;
-
-  const counts = new Array<number>(24).fill(0);
-  const autoActions: AutoAction[] = [];
-
-  rooms.forEach((r) => {
-    participantsTotal += r.participants?.length ?? 0;
-
-    const q = MusicService.getQueue(r.id);
-    queueTotal += q.length;
-
-    // approvals in last 24h
-    q.forEach((req) => {
-      if (req.approved && req.createdAt >= dayAgo) {
-        const bucket = Math.floor((now - req.createdAt) / 3600000);
-        if (bucket >= 0 && bucket < 24) {
-          const idx = 23 - bucket; // oldest to newest
-          counts[idx] += 1;
-        }
-      }
-    });
-
-    // auto-moderation actions in last 24h
-    const reports = ReportService.list(r.id).filter((rep) => rep.createdAt >= dayAgo && rep.autoActionApplied);
-    reports.forEach((rep) => {
-      autoActions.push({
-        type: rep.type,
-        target: rep.targetUserId,
-        at: rep.createdAt,
-        roomId: r.id,
-        priority: rep.priority,
-      });
-    });
-  });
-
-  // Build chart points (oldest -> newest)
-  const approvals: ApprovalPoint[] = counts.map((c, i) => {
-    const ts = now - (23 - i) * 3600000;
-    const label = new Date(ts).toLocaleTimeString([], { hour: "2-digit" });
-    return { label, count: c };
-  });
-
-  // Sort auto actions by time desc
-  autoActions.sort((a, b) => b.at - a.at);
-
-  return {
-    roomsCount: rooms.length,
-    participantsTotal,
-    queueTotal,
-    approvals,
-    autoActions: autoActions.slice(0, 6),
-  };
-}
+import { supabase, isSupabaseReady } from "@/services/db/supabaseClient";
+import { AuthService } from "@/services/AuthService";
 
 const Status: React.FC = () => {
-  const [data, setData] = useState(() => computeMetrics());
+  const [ready, setReady] = useState<boolean>(isSupabaseReady);
+  const [token, setToken] = useState<string | null>(null);
+  const [expiry, setExpiry] = useState<Date | null>(null);
+  const [email, setEmail] = useState<string | null>(null);
 
-  const summary = useMemo(
-    () => [
-      { label: "Rooms", value: data.roomsCount },
-      { label: "Participants", value: data.participantsTotal },
-      { label: "Queue size", value: data.queueTotal },
-    ],
-    [data],
-  );
+  const refresh = async () => {
+    setReady(isSupabaseReady);
+    const t = await AuthService.getAccessToken();
+    setToken(t);
+    const exp = await AuthService.getTokenExpiry();
+    setExpiry(exp);
+    const { data } = await supabase?.auth.getUser()!;
+    setEmail(data?.user?.email || null);
+  };
+
+  useEffect(() => {
+    void refresh();
+  }, []);
 
   return (
-    <AdminLayout title="Status">
-      <div className="grid gap-4">
-        {/* Summary cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {summary.map((s) => (
-            <Card key={s.label}>
-              <CardHeader><CardTitle className="text-base">{s.label}</CardTitle></CardHeader>
-              <CardContent><div className="text-3xl font-bold">{s.value}</div></CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* Approvals in last 24h */}
-        <Card>
-          <CardHeader><CardTitle>Approvals (last 24 hours)</CardTitle></CardHeader>
-          <CardContent className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={data.approvals}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="label" />
-                <YAxis allowDecimals={false} />
-                <Tooltip />
-                <Line type="monotone" dataKey="count" stroke="#10B981" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Recent auto-moderation actions */}
+    <AdminLayout title="System Status & API Docs">
+      <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Recent Auto Actions</span>
-              <Button variant="outline" size="sm" onClick={() => { setData(computeMetrics()); showSuccess("Refreshed"); }}>
-                Refresh
-              </Button>
-            </CardTitle>
+            <CardTitle>Supabase</CardTitle>
           </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Room</TableHead>
-                  <TableHead>Target</TableHead>
-                  <TableHead>Priority</TableHead>
-                  <TableHead>At</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {data.autoActions.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-xs text-muted-foreground">
-                      No auto actions in the last 24 hours.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  data.autoActions.map((a, idx) => (
-                    <TableRow key={`${a.roomId}-${a.at}-${idx}`}>
-                      <TableCell className="capitalize">{a.type.replace("-", " ")}</TableCell>
-                      <TableCell>{a.roomId}</TableCell>
-                      <TableCell>{a.target ?? "—"}</TableCell>
-                      <TableCell className="capitalize">{a.priority}</TableCell>
-                      <TableCell>{new Date(a.at).toLocaleString()}</TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+          <CardContent className="space-y-2">
+            <div className="flex items-center gap-2">
+              <span>Status:</span>
+              <Badge variant={ready ? "secondary" : "destructive"}>{ready ? "Ready" : "Not Configured"}</Badge>
+            </div>
+            <div className="flex items-center gap-2">
+              <span>Current User:</span>
+              <Badge variant="outline">{email || "anonymous"}</Badge>
+            </div>
+            <div className="flex items-center gap-2">
+              <span>JWT Token:</span>
+              <Badge variant="outline">{token ? token.slice(0, 16) + "..." : "none"}</Badge>
+            </div>
+            <div className="flex items-center gap-2">
+              <span>Expires:</span>
+              <Badge variant="outline">{expiry ? expiry.toLocaleString() : "N/A"}</Badge>
+            </div>
+            <Button variant="outline" onClick={refresh}>Refresh</Button>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>API Endpoints (Docs)</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <div>
+              POST /api/register — Create account with {`{ username, email, password, phone }`} • returns ApiResponse<User>.
+            </div>
+            <div>
+              POST /api/login — Login with email or username • returns ApiResponse<User + token>.
+            </div>
+            <div>
+              POST /api/logout — Invalidate session • returns ApiResponse.
+            </div>
+            <div>
+              GET /api/me — Current user profile • returns ApiResponse<Profile>.
+            </div>
+            <div>
+              POST /api/change-password — Update password (auth required) • returns ApiResponse.
+            </div>
+            <div className="border-t pt-2">
+              GET /admin/api/users — List users (admin) • returns ApiResponse<Profile[]>.
+            </div>
+            <div>
+              POST /admin/api/users/&lt;id&gt;/toggle-active — Toggle user active • returns ApiResponse<Profile>.
+            </div>
+            <div>
+              GET /admin/api/stats — Basic stats • returns ApiResponse&lt;{{ total, active, banned, verified, coins }}&gt;.
+            </div>
+            <div className="text-xs text-muted-foreground mt-2">
+              Note: In this client-only build, endpoints are backed by Supabase directly; configure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to enable real JWT and database operations.
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="mt-4 text-xs text-muted-foreground">
+        Live Dashboard route: /admin/dashboard • Users management: /admin/users • Auth pages: /auth/register, /auth/login
       </div>
     </AdminLayout>
   );

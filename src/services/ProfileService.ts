@@ -1,6 +1,7 @@
 "use client";
 
 import { supabase, isSupabaseReady, safe } from "@/services/db/supabaseClient";
+import { resizeImage } from "@/utils/image";
 
 export type Profile = {
   id: string;
@@ -103,10 +104,12 @@ export const ProfileService = {
     if (!(isSupabaseReady && supabase)) {
       return null;
     }
-    const path = `${userId}/${Date.now()}_${file.name}`;
-    const { error: upErr } = await supabase.storage.from("profiles").upload(path, file, {
+    // Resize client-side for performance
+    const resized = await resizeImage(file, 512, 512, 0.9);
+    const path = `${userId}/${Date.now()}_${resized.name}`;
+    const { error: upErr } = await supabase.storage.from("profiles").upload(path, resized, {
       upsert: true,
-      contentType: file.type || "image/*",
+      contentType: resized.type || "image/*",
     });
     if (upErr) throw new Error(upErr.message);
     const { data } = supabase.storage.from("profiles").getPublicUrl(path);
