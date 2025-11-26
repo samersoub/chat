@@ -5,6 +5,8 @@ import AdminLayout from "@/components/admin/AdminLayout";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import CodeLine from "@/components/ui/CodeLine";
+import { showSuccess } from "@/utils/toast";
 import { supabase, isSupabaseReady } from "@/services/db/supabaseClient";
 import { AuthService } from "@/services/AuthService";
 
@@ -47,6 +49,17 @@ const Status: React.FC = () => {
             <div className="flex items-center gap-2">
               <span>JWT Token:</span>
               <Badge variant="outline">{token ? token.slice(0, 16) + "..." : "none"}</Badge>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  if (!token) return;
+                  void navigator.clipboard.writeText(token);
+                  showSuccess("Token copied");
+                }}
+              >
+                Copy
+              </Button>
             </div>
             <div className="flex items-center gap-2">
               <span>Expires:</span>
@@ -61,29 +74,14 @@ const Status: React.FC = () => {
             <CardTitle>API Endpoints (Docs)</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
-            <div>
-              {"POST /api/register — Create account with { username, email, password, phone } • returns ApiResponse<User>."}
-            </div>
-            <div>
-              {"POST /api/login — Login with email or username • returns ApiResponse<User + token>."}
-            </div>
-            <div>
-              {"POST /api/logout — Invalidate session • returns ApiResponse."}
-            </div>
-            <div>
-              {"GET /api/me — Current user profile • returns ApiResponse<Profile>."}
-            </div>
-            <div>
-              {"POST /api/change-password — Update password (auth required) • returns ApiResponse."}
-            </div>
-            <div className="border-t pt-2">
-              {"GET /admin/api/users — List users (admin) • returns ApiResponse<Profile[]>."}
-            </div>
-            <div>
-              {"POST /admin/api/users/<id>/toggle-active — Toggle user active • returns ApiResponse<Profile>."}
-            </div>
-            <div>
-              {"GET /admin/api/stats — Basic stats • returns ApiResponse<{{ total, active, banned, verified, coins }}>."}
+            <CodeLine text={"POST /api/register — Create account with { username, email, password, phone } • returns ApiResponse<User>."} />
+            <CodeLine text={"POST /api/login — Login with email or username • returns ApiResponse<User + token>."} />
+            <CodeLine text={"POST /api/logout — Invalidate session • returns ApiResponse."} />
+            <CodeLine text={"GET /api/me — Current user profile • returns ApiResponse<Profile>."} />
+            <div className="border-t pt-2 space-y-3">
+              <CodeLine text={"GET /admin/api/users — List users (admin) • returns ApiResponse<Profile[]>."} />
+              <CodeLine text={"POST /admin/api/users/<id>/toggle-active — Toggle user active • returns ApiResponse<Profile>."} />
+              <CodeLine text={"GET /admin/api/stats — Basic stats • returns ApiResponse<{{ total, active, banned, verified, coins }}>."} />
             </div>
             <div className="text-xs text-muted-foreground mt-2">
               Note: In this client-only build, endpoints are backed by Supabase directly; configure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to enable real JWT and database operations.
