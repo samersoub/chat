@@ -22,8 +22,9 @@ const Status: React.FC = () => {
     setToken(t);
     const exp = await AuthService.getTokenExpiry();
     setExpiry(exp);
-    const { data } = await supabase?.auth.getUser()!;
-    setEmail(data?.user?.email || null);
+    // UPDATED: Guard supabase before calling auth.getUser and avoid destructuring from undefined
+    const userRes = supabase ? await supabase.auth.getUser() : undefined;
+    setEmail(userRes?.data?.user?.email ?? null);
   };
 
   useEffect(() => {
