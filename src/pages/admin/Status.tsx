@@ -62,28 +62,28 @@ const Status: React.FC = () => {
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <div>
-              POST /api/register — Create account with {`{ username, email, password, phone }`} • returns ApiResponse<User>.
+              {"POST /api/register — Create account with { username, email, password, phone } • returns ApiResponse<User>."}
             </div>
             <div>
-              POST /api/login — Login with email or username • returns ApiResponse<User + token>.
+              {"POST /api/login — Login with email or username • returns ApiResponse<User + token>."}
             </div>
             <div>
-              POST /api/logout — Invalidate session • returns ApiResponse.
+              {"POST /api/logout — Invalidate session • returns ApiResponse."}
             </div>
             <div>
-              GET /api/me — Current user profile • returns ApiResponse<Profile>.
+              {"GET /api/me — Current user profile • returns ApiResponse<Profile>."}
             </div>
             <div>
-              POST /api/change-password — Update password (auth required) • returns ApiResponse.
+              {"POST /api/change-password — Update password (auth required) • returns ApiResponse."}
             </div>
             <div className="border-t pt-2">
-              GET /admin/api/users — List users (admin) • returns ApiResponse<Profile[]>.
+              {"GET /admin/api/users — List users (admin) • returns ApiResponse<Profile[]>."}
             </div>
             <div>
-              POST /admin/api/users/&lt;id&gt;/toggle-active — Toggle user active • returns ApiResponse<Profile>.
+              {"POST /admin/api/users/<id>/toggle-active — Toggle user active • returns ApiResponse<Profile>."}
             </div>
             <div>
-              GET /admin/api/stats — Basic stats • returns ApiResponse&lt;{{ total, active, banned, verified, coins }}&gt;.
+              {"GET /admin/api/stats — Basic stats • returns ApiResponse<{{ total, active, banned, verified, coins }}>."}
             </div>
             <div className="text-xs text-muted-foreground mt-2">
               Note: In this client-only build, endpoints are backed by Supabase directly; configure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to enable real JWT and database operations.
