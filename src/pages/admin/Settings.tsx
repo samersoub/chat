@@ -57,9 +57,13 @@ const Settings: React.FC = () => {
                 </SelectTrigger>
                 <SelectContent>
                   {rooms.length === 0 ? (
-                    <SelectItem value="">No rooms</SelectItem>
+                    <div className="p-2 text-sm text-muted-foreground">No rooms</div>
                   ) : (
-                    rooms.map((r) => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)
+                    rooms.map((r) => (
+                      <SelectItem key={r.id} value={r.id}>
+                        {r.name}
+                      </SelectItem>
+                    ))
                   )}
                 </SelectContent>
               </Select>
