@@ -31,43 +31,37 @@ const ProfileHeader: React.FC<Props> = ({ user, profile, className }) => {
   ];
 
   return (
-    <div className={cn("rounded-xl overflow-hidden border", className)}>
-      <div className="relative">
-        {/* Banner */}
-        <div className="h-32 sm:h-40 bg-gradient-to-r from-fuchsia-500/40 via-purple-500/40 to-indigo-500/40" />
-        {/* Header content */}
-        <div className="p-4 sm:p-6">
-          <div className={cn("flex items-end gap-3", dir === "rtl" ? "flex-row-reverse" : "flex-row")}>
-            <AvatarWithFrame name={username} imageUrl={avatarUrl} size={96} />
-            <div className={cn("flex-1", dir === "rtl" ? "text-right" : "text-left")}>
-              <div className="flex items-center gap-2 justify-between flex-wrap">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg sm:text-xl font-semibold">{username}</span>
-                  <Badge variant="secondary">Lv. {level}</Badge>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button asChild size="sm" variant="outline">
-                    <Link to="/profile/settings">{t("Settings")}</Link>
-                  </Button>
-                  <Button size="sm" onClick={() => showSuccess(dir === "rtl" ? "تمت المتابعة" : "Followed")}>
-                    {dir === "rtl" ? "متابعة" : "Follow"}
-                  </Button>
-                  <Button size="sm" variant="secondary" onClick={() => showSuccess(dir === "rtl" ? "تم إرسال رسالة" : "Message sent")}>
-                    {dir === "rtl" ? "رسالة" : "Message"}
-                  </Button>
-                </div>
+    <div className={cn(className)}>
+      <div className="p-0">
+        <div className={cn("flex items-end gap-3", dir === "rtl" ? "flex-row-reverse" : "flex-row")}>
+          <AvatarWithFrame name={username} imageUrl={avatarUrl} size={96} />
+          <div className={cn("flex-1", dir === "rtl" ? "text-right" : "text-left")}>
+            <div className="flex items-center gap-2 justify-between flex-wrap">
+              <div className="flex items-center gap-2">
+                <span className="text-lg sm:text-xl font-semibold text-white drop-shadow">{username}</span>
+                <Badge variant="secondary">Lv. {level}</Badge>
               </div>
+              <div className="flex items-center gap-2">
+                <Button asChild size="sm" variant="outline">
+                  <a href="/profile/settings">{t("Settings") || (dir === "rtl" ? "الإعدادات" : "Settings")}</a>
+                </Button>
+                <Button size="sm" onClick={() => showSuccess(dir === "rtl" ? "تمت المتابعة" : "Followed")}>
+                  {dir === "rtl" ? "متابعة" : "Follow"}
+                </Button>
+                <Button size="sm" variant="secondary" onClick={() => showSuccess(dir === "rtl" ? "تم إرسال رسالة" : "Message sent")}>
+                  {dir === "rtl" ? "رسالة" : "Message"}
+                </Button>
+              </div>
+            </div>
 
-              {/* Badges scroller */}
-              <ScrollArea className="mt-3">
-                <div className={cn("flex items-center gap-2 pb-2", dir === "rtl" ? "flex-row-reverse" : "flex-row")}>
-                  {badges.map((b) => (
-                    <Badge key={b.id} variant={b.variant}>
-                      {b.label}
-                    </Badge>
-                  ))}
-                </div>
-              </ScrollArea>
+            <div className="mt-3 overflow-x-auto">
+              <div className={cn("flex items-center gap-2 pb-2", dir === "rtl" ? "flex-row-reverse" : "flex-row")}>
+                {badges.map((b) => (
+                  <Badge key={b.id} variant={b.variant}>
+                    {b.label}
+                  </Badge>
+                ))}
+              </div>
             </div>
           </div>
         </div>

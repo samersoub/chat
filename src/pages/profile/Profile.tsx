@@ -12,6 +12,8 @@ import ProfileStats from "@/components/profile/ProfileStats";
 import ProfileTabs from "@/components/profile/ProfileTabs";
 import ProfileDetails from "@/components/profile/ProfileDetails";
 import ProfileMoments from "@/components/profile/ProfileMoments";
+import ProfileCover from "@/components/profile/ProfileCover";
+import QuickActionsBar from "@/components/profile/QuickActionsBar";
 
 const Profile = () => {
   const user = AuthService.getCurrentUser();
@@ -31,10 +33,18 @@ const Profile = () => {
   return (
     <ChatLayout title="Profile">
       <div className="mx-auto max-w-3xl p-4 space-y-4">
-        <ProfileHeader user={user} profile={profile} />
+        {/* Top cover with header content overlay */}
+        <ProfileCover>
+          <ProfileHeader user={user} profile={profile} />
+        </ProfileCover>
 
+        {/* Quick actions under the cover */}
+        <QuickActionsBar className="px-1" />
+
+        {/* Stats */}
         <ProfileStats profile={profile} />
 
+        {/* Tabs: Moments & Personal Profile */}
         <ProfileTabs
           defaultValue="moments"
           momentsSlot={<ProfileMoments photos={[]} />}
