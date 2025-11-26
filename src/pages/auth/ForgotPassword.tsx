@@ -5,7 +5,8 @@ import ChatLayout from "@/components/chat/ChatLayout";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { showSuccess } from "@/utils/toast";
+import { showSuccess, showError } from "@/utils/toast";
+import { supabase, isSupabaseReady } from "@/services/db/supabaseClient";
 
 const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -21,7 +22,14 @@ const ForgotPassword: React.FC = () => {
             <Input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
             <Button
               className="w-full bg-gradient-to-r from-amber-500 to-yellow-500 text-white"
-              onClick={() => {
+              onClick={async () => {
+                if (isSupabaseReady && supabase) {
+                  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + "/auth/login" });
+                  if (error) {
+                    showError(error.message);
+                    return;
+                  }
+                }
                 showSuccess("Reset link sent");
               }}
             >

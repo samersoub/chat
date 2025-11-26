@@ -9,7 +9,7 @@ import ChatLayout from "@/components/chat/ChatLayout";
 
 const Login = () => {
   const nav = useNavigate();
-  const [email, setEmail] = useState("");
+  const [login, setLogin] = useState("");
   const [password, setPwd] = useState("");
   return (
     <ChatLayout title="دندنة شات • Login">
@@ -19,13 +19,13 @@ const Login = () => {
             <CardTitle className="bg-gradient-to-r from-amber-500 to-yellow-500 bg-clip-text text-transparent">Login</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />
+            <Input placeholder="Email or Username" value={login} onChange={e => setLogin(e.target.value)} />
             <Input type="password" placeholder="Password" value={password} onChange={e => setPwd(e.target.value)} />
             <Button
               className="w-full bg-gradient-to-r from-amber-500 to-yellow-500 text-white"
-              onClick={() => {
+              onClick={async () => {
                 try {
-                  AuthService.login(email, password);
+                  await AuthService.loginUnified(login, password);
                   showSuccess("Logged in");
                   nav("/voice/rooms");
                 } catch (e: any) {

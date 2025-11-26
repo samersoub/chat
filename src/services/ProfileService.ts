@@ -1,0 +1,124 @@
+"use client";
+
+import { supabase, isSupabaseReady, safe } from "@/services/db/supabaseClient";
+
+export type Profile = {
+  id: string;
+  username: string;
+  email: string;
+  phone: string;
+  profile_image?: string | null;
+  coins: number;
+  is_active: boolean;
+  is_verified: boolean;
+  role: string;
+  created_at: string;
+  last_login?: string | null;
+};
+
+const LOCAL_KEY = "profiles";
+
+function readLocal(): Profile[] {
+  try {
+    const raw = localStorage.getItem(LOCAL_KEY);
+    return raw ? (JSON.parse(raw) as Profile[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeLocal(items: Profile[]) {
+  localStorage.setItem(LOCAL_KEY, JSON.stringify(items));
+}
+
+export const ProfileService = {
+  async upsertProfile(p: Profile): Promise<Profile> {
+    if (isSupabaseReady && supabase) {
+      const { data, error } = await supabase
+        .from("profiles")
+        .upsert(p)
+        .select()
+        .single();
+      if (error) throw new Error(error.message);
+      return data as Profile;
+    }
+    const all = readLocal();
+    const idx = all.findIndex((x) => x.id === p.id);
+    if (idx >= 0) all[idx] = p;
+    else all.push(p);
+    writeLocal(all);
+    return p;
+  },
+
+  async getByUserId(id: string): Promise<Profile | null> {
+    if (isSupabaseReady && supabase) {
+      const { data, error } = await supabase.from("profiles").select("*").eq("id", id).single();
+      if (error) return null;
+      return data as Profile;
+    }
+    return readLocal().find((p) => p.id === id) || null;
+  },
+
+  async getByUsername(username: string): Promise<Profile | null> {
+    if (isSupabaseReady && supabase) {
+      const { data, error } = await supabase.from("profiles").select("*").eq("username", username).single();
+      if (error) return null;
+      return data as Profile;
+    }
+    return readLocal().find((p) => p.username === username) || null;
+  },
+
+  async listAll(): Promise<Profile[]> {
+    if (isSupabaseReady && supabase) {
+      const { data, error } = await supabase.from("profiles").select("*").order("created_at", { ascending: false });
+      if (error) throw new Error(error.message);
+      return (data || []) as Profile[];
+    }
+    return readLocal();
+  },
+
+  async toggleActive(id: string): Promise<Profile | null> {
+    const current = await this.getByUserId(id);
+    if (!current) return null;
+    const updated = { ...current, is_active: !current.is_active };
+    return await this.upsertProfile(updated);
+  },
+
+  async updateLastLogin(id: string): Promise<void> {
+    const current = await this.getByUserId(id);
+    if (!current) return;
+    const updated = { ...current, last_login: new Date().toISOString() };
+    await this.upsertProfile(updated);
+  },
+
+  async updateCoins(id: string, delta: number): Promise<Profile | null> {
+    const current = await this.getByUserId(id);
+    if (!current) return null;
+    const updated = { ...current, coins: Math.max(0, (current.coins || 0) + delta) };
+    return await this.upsertProfile(updated);
+  },
+
+  async uploadProfileImage(userId: string, file: File): Promise<string | null> {
+    if (!file) return null;
+    if (!(isSupabaseReady && supabase)) {
+      return null;
+    }
+    const path = `${userId}/${Date.now()}_${file.name}`;
+    const { error: upErr } = await supabase.storage.from("profiles").upload(path, file, {
+      upsert: true,
+      contentType: file.type || "image/*",
+    });
+    if (upErr) throw new Error(upErr.message);
+    const { data } = supabase.storage.from("profiles").getPublicUrl(path);
+    const url = data?.publicUrl || null;
+    if (url) {
+      const prof = await this.getByUserId(userId);
+      if (prof) {
+        await this.upsertProfile({ ...prof, profile_image: url });
+      }
+    }
+    return url;
+  },
+};
+
+export default ProfileService;
