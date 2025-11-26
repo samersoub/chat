@@ -1,4 +1,5 @@
 import { ChatRoom } from "@/models/ChatRoom";
+import { supabase, isSupabaseReady, safe } from "@/services/db/supabaseClient";
 
 const KEY = "voice:rooms";
 
@@ -11,8 +12,51 @@ function writeRooms(rooms: ChatRoom[]) {
   localStorage.setItem(KEY, JSON.stringify(rooms));
 }
 
+async function hydrateRoomsFromDB() {
+  if (!isSupabaseReady || !supabase) return;
+  const { data, error } = await supabase.from("chat_rooms").select("*").order("createdAt", { ascending: false });
+  if (error || !data) return;
+  try {
+    const rooms = (data as any[]).map((r) => ({
+      id: r.id,
+      name: r.name,
+      isPrivate: !!r.isPrivate,
+      hostId: r.hostId,
+      participants: Array.isArray(r.participants) ? r.participants : [],
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+      description: r.description || undefined,
+    })) as ChatRoom[];
+    writeRooms(rooms);
+  } catch {
+    // ignore mapping errors
+  }
+}
+
+function syncUpsertRoom(room: ChatRoom) {
+  if (!isSupabaseReady || !supabase) return;
+  void safe(
+    supabase.from("chat_rooms").upsert({
+      id: room.id,
+      name: room.name,
+      isPrivate: room.isPrivate,
+      hostId: room.hostId,
+      participants: room.participants,
+      createdAt: room.createdAt,
+      updatedAt: room.updatedAt,
+      description: room.description ?? null,
+    })
+  );
+}
+
+function syncDeleteRoom(id: string) {
+  if (!isSupabaseReady || !supabase) return;
+  void safe(supabase.from("chat_rooms").delete().eq("id", id));
+}
+
 export const VoiceChatService = {
   listRooms(): ChatRoom[] {
+    void hydrateRoomsFromDB();
     return readRooms();
   },
   createRoom(name: string, isPrivate: boolean, hostId: string, description?: string): ChatRoom {
@@ -29,9 +73,11 @@ export const VoiceChatService = {
     const rooms = readRooms();
     rooms.push(room);
     writeRooms(rooms);
+    syncUpsertRoom(room);
     return room;
   },
   getRoom(id: string): ChatRoom | undefined {
+    void hydrateRoomsFromDB();
     return readRooms().find(r => r.id === id);
   },
   joinRoom(id: string, userId: string): ChatRoom {
@@ -44,6 +90,7 @@ export const VoiceChatService = {
       room.updatedAt = new Date().toISOString();
       rooms[idx] = room;
       writeRooms(rooms);
+      syncUpsertRoom(room);
     }
     return room;
   },
@@ -56,10 +103,12 @@ export const VoiceChatService = {
     room.updatedAt = new Date().toISOString();
     rooms[idx] = room;
     writeRooms(rooms);
+    syncUpsertRoom(room);
     return room;
   },
   deleteRoom(id: string) {
     const rooms = readRooms().filter(r => r.id !== id);
     writeRooms(rooms);
+    syncDeleteRoom(id);
   },
 };
