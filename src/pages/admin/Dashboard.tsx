@@ -1,48 +1,41 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
-
-const data = [
-  { day: "Mon", coins: 120, gifts: 40 },
-  { day: "Tue", coins: 200, gifts: 52 },
-  { day: "Wed", coins: 180, gifts: 65 },
-  { day: "Thu", coins: 240, gifts: 90 },
-  { day: "Fri", coins: 300, gifts: 120 },
-  { day: "Sat", coins: 280, gifts: 110 },
-  { day: "Sun", coins: 260, gifts: 95 },
-];
+import StatsCards from "@/components/admin/StatsCards";
+import { Button } from "@/components/ui/button";
+import { showError } from "@/utils/toast";
+import { ProfileService, type Profile } from "@/services/ProfileService";
 
 const Dashboard: React.FC = () => {
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const list = await ProfileService.listAll();
+      setProfiles(list);
+    } catch (e: any) {
+      showError(e.message || "Failed to load stats");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void load();
+  }, []);
+
   return (
-    <AdminLayout title="Dashboard">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader><CardTitle>Daily Coins vs Gifts</CardTitle></CardHeader>
-          <CardContent className="h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={data}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="day" />
-                <YAxis />
-                <Tooltip />
-                <Line type="monotone" dataKey="coins" stroke="#6366F1" strokeWidth={2} />
-                <Line type="monotone" dataKey="gifts" stroke="#EC4899" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader><CardTitle>Active Users</CardTitle></CardHeader>
-          <CardContent><div className="text-3xl font-bold">1,248</div></CardContent>
-        </Card>
-        <Card>
-          <CardHeader><CardTitle>Active Rooms</CardTitle></CardHeader>
-          <CardContent><div className="text-3xl font-bold">86</div></CardContent>
-        </Card>
+    <AdminLayout title="Admin Dashboard">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold">Realtime Statistics</h2>
+        <Button variant="outline" onClick={load} disabled={loading}>
+          {loading ? "Refreshing..." : "Refresh"}
+        </Button>
       </div>
+      <StatsCards profiles={profiles} />
     </AdminLayout>
   );
 };
