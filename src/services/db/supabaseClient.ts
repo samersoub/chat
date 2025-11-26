@@ -16,9 +16,10 @@ export const isSupabaseReady = !!supabase;
 /**
  * Convenience: safe call wrapper to avoid exception propagation in fire-and-forget sync.
  */
-export async function safe<T>(p: Promise<T>): Promise<T | null> {
+export async function safe<T>(p: PromiseLike<T> | { then: (...args: any[]) => any } | T): Promise<T | null> {
   try {
-    return await p;
+    // Resolve both real Promises and Supabase Postgrest builders (thenables)
+    return await Promise.resolve(p as any);
   } catch {
     return null;
   }
