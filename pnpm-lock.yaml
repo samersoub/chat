@@ -158,6 +158,9 @@ importers:
       tailwindcss-animate:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@3.4.17)
+      trtc-js-sdk:
+        specifier: ^4.15.22
+        version: 4.15.22
       vaul:
         specifier: ^0.9.3
         version: 0.9.9(@types/react-dom@18.3.6(@types/react@18.3.20))(@types/react@18.3.20)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -2280,6 +2283,9 @@ packages:
   scheduler@0.23.2:
     resolution: {integrity: sha512-UOShsPwz7NrMUqhR6t0hWjFduvOzbtv7toDH1/hIrfRNIDBnnBWd0CwJTGvTpngVlmwGCdP9/Zl/tVrDqcuYzQ==}
 
+  sdp@3.2.1:
+    resolution: {integrity: sha512-lwsAIzOPlH8/7IIjjz3K0zYBk7aBVVcvjMwt3M4fLxpjMYyy7i3I97SLHebgn4YBjirkzfp3RvRDWSKsh/+WFw==}
+
   semver@7.7.1:
     resolution: {integrity: sha512-hlq8tAfn0m/61p4BVRcPzIGr6LKiMwo4VM6dGi6pt4qcRkmNzTcWq6eCEjEh+qXjkMDvPlOFFSGwQjoEa6gyMA==}
     engines: {node: '>=10'}
@@ -2370,6 +2376,9 @@ packages:
   to-regex-range@5.0.1:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
     engines: {node: '>=8.0'}
+
+  trtc-js-sdk@4.15.22:
+    resolution: {integrity: sha512-YC0YvHya0Dnrxs9+TsT6L73M5mTKt+Aqar56Hlq+C1LNiuCpCBl+6vs1DTz0yH/NELNl0Oiv6OSl5j6LwSOQrw==}
 
   ts-api-utils@2.1.0:
     resolution: {integrity: sha512-CUgTZL1irw8u29bzrOD/nH85jqyc74D6SshFgujOIA7osm2Rz7dYH77agkx7H4FBNxDq7Cjf+IjaX/8zwFW+ZQ==}
@@ -2482,6 +2491,10 @@ packages:
         optional: true
       yaml:
         optional: true
+
+  webrtc-adapter@8.2.4:
+    resolution: {integrity: sha512-VwtwbYNKnVQW8koB9qb8YcxNwpSVHTvvKEZLzY6uQ3gFrA9E87VPbB5xE+m1AGwUjL1UgN35jRR9hQgteZI5bg==}
+    engines: {node: '>=6.0.0', npm: '>=3.10.0'}
 
   which@2.0.2:
     resolution: {integrity: sha512-BLI3Tl1TW3Pvl70l3yq3Y64i+awpwXqsGBYWkkqMtnbXgrMD+yj7rhW0kuEDxzJaYXGjEW5ogapKNMEKNMjibA==}
@@ -4520,6 +4533,8 @@ snapshots:
     dependencies:
       loose-envify: 1.4.0
 
+  sdp@3.2.1: {}
+
   semver@7.7.1: {}
 
   shebang-command@2.0.0:
@@ -4627,6 +4642,10 @@ snapshots:
     dependencies:
       is-number: 7.0.0
 
+  trtc-js-sdk@4.15.22:
+    dependencies:
+      webrtc-adapter: 8.2.4
+
   ts-api-utils@2.1.0(typescript@5.8.3):
     dependencies:
       typescript: 5.8.3
@@ -4719,6 +4738,10 @@ snapshots:
       fsevents: 2.3.3
       jiti: 1.21.7
       yaml: 2.7.1
+
+  webrtc-adapter@8.2.4:
+    dependencies:
+      sdp: 3.2.1
 
   which@2.0.2:
     dependencies:

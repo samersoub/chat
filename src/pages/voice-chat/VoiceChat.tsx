@@ -25,6 +25,9 @@ import EmojiPicker from "@/components/voice/EmojiPicker";
 import ChatInputSheet from "@/components/voice/ChatInputSheet";
 import { LocalChatService } from "@/services/LocalChatService";
 import { Message } from "@/models/Message";
+import TRTC from "trtc-js-sdk";
+import { TRTC_SDK_APP_ID, TRTC_TEST_ROOM_ID } from "@/config/trtcConfig";
+import { fetchUserSig } from "@/utils/trtcAuth";
 
 const VoiceChat = () => {
   const { id } = useParams<{ id: string }>();
@@ -42,6 +45,8 @@ const VoiceChat = () => {
 
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
   const rtcRef = React.useRef<WebRTCService | null>(null);
+  const trtcClientRef = React.useRef<any>(null);
+  const trtcLocalStreamRef = React.useRef<any>(null);
 
   const user = AuthService.getCurrentUser();
   const roomSeats = React.useMemo(() => (id ? MicService.getSeats(id) : []), [id]);
@@ -119,6 +124,54 @@ const VoiceChat = () => {
     return () => clearTimeout(t);
   }, []);
 
+  // Join TRTC test room and publish local audio
+  const handleJoinTRTC = async () => {
+    const currentUserID = "samers_test_user_1";
+    try {
+      const userSig = await fetchUserSig(currentUserID);
+
+      const client = TRTC.createClient({
+        mode: "rtc",
+        sdkAppId: TRTC_SDK_APP_ID,
+      });
+      trtcClientRef.current = client;
+
+      // Subscribe and play remote audio when others publish
+      client.on("stream-added", async (event: any) => {
+        const remoteStream = event.stream;
+        console.log("TRTC: Remote stream added", remoteStream?.getId?.() ?? remoteStream);
+        await client.subscribe(remoteStream);
+      });
+      client.on("stream-subscribed", (event: any) => {
+        const remoteStream = event.stream;
+        try {
+          remoteStream.play();
+          console.log("TRTC: Subscribed & playing remote stream");
+        } catch (err) {
+          console.error("TRTC: Failed to play remote stream", err);
+        }
+      });
+
+      await client.join({
+        roomId: TRTC_TEST_ROOM_ID,
+        userId: currentUserID,
+        userSig,
+      });
+      console.log("TRTC: Join Success");
+      showSuccess("Joined TRTC test room");
+
+      const localStream = TRTC.createStream({ audio: true, video: false });
+      trtcLocalStreamRef.current = localStream;
+      await localStream.initialize();
+      await client.publish(localStream);
+      console.log("TRTC: Publish Success");
+      showSuccess("Published local audio");
+    } catch (err: any) {
+      console.error("TRTC: Join/Publish failed", err);
+      showError(err?.message || "Failed to join/publish TRTC");
+    }
+  };
+
   const handleExitRoom = () => {
     if (id && user?.id) {
       try {
@@ -134,6 +187,25 @@ const VoiceChat = () => {
       AudioManager.detach(audioRef.current);
     }
     setMicOn(false);
+
+    // TRTC cleanup: stop local & leave
+    const c = trtcClientRef.current;
+    if (c) {
+      try {
+        const ls = trtcLocalStreamRef.current;
+        if (ls) {
+          try {
+            ls.stop?.();
+            ls.close?.();
+          } catch {}
+          trtcLocalStreamRef.current = null;
+        }
+        // leave without awaiting (non-async handler)
+        void c.leave?.();
+      } catch {}
+      trtcClientRef.current = null;
+    }
+
     navigate("/");
   };
 
@@ -269,6 +341,13 @@ const VoiceChat = () => {
           }}
         >
           Subscribe: {subscribeMode === "auto" ? "Auto" : "Manual"}
+        </Button>
+        <Button
+          variant="outline"
+          className="bg-white/10 text-white border-white/20 hover:bg-white/20"
+          onClick={handleJoinTRTC}
+        >
+          Join TRTC Test Room
         </Button>
       </div>
 
