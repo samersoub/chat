@@ -9,10 +9,7 @@ export const TRTC_SDK_APP_ID = 200297772;
 export const TRTC_TEST_ROOM_ID = 10086;
 
 /**
- * IMPORTANT: You MUST REPLACE THIS PLACEHOLDER
- * This is the URL of the secure backend server you created
- * (e.g., on Vercel/Heroku) that uses the Secret Key to generate the UserSig.
- *
- * Example: https://your-usersig-service.example.com/api/usersig
+ * Secure backend endpoint that returns a UserSig for a given userId.
+ * This should be your deployed Vercel function URL.
  */
-export const USERSIG_API_ENDPOINT = "[PASTE YOUR DEPLOYED USERSIG SERVER URL HERE]";
+export const USERSIG_API_ENDPOINT = "https://trtc-sig-service.vercel.app/api/generate-sig";
