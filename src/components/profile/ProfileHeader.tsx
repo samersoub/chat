@@ -43,7 +43,7 @@ const ProfileHeader: React.FC<Props> = ({ user, profile, className }) => {
               </div>
               <div className="flex items-center gap-2">
                 <Button asChild size="sm" variant="outline">
-                  <a href="/profile/settings">{t("Settings") || (dir === "rtl" ? "الإعدادات" : "Settings")}</a>
+                  <Link to="/profile/settings">{t("Settings") || (dir === "rtl" ? "الإعدادات" : "Settings")}</Link>
                 </Button>
                 <Button size="sm" onClick={() => showSuccess(dir === "rtl" ? "تمت المتابعة" : "Followed")}>
                   {dir === "rtl" ? "متابعة" : "Follow"}
@@ -54,7 +54,7 @@ const ProfileHeader: React.FC<Props> = ({ user, profile, className }) => {
               </div>
             </div>
 
-            <div className="mt-3 overflow-x-auto">
+            <ScrollArea className="mt-3 whitespace-nowrap">
               <div className={cn("flex items-center gap-2 pb-2", dir === "rtl" ? "flex-row-reverse" : "flex-row")}>
                 {badges.map((b) => (
                   <Badge key={b.id} variant={b.variant}>
@@ -62,7 +62,7 @@ const ProfileHeader: React.FC<Props> = ({ user, profile, className }) => {
                   </Badge>
                 ))}
               </div>
-            </div>
+            </ScrollArea>
           </div>
         </div>
       </div>
