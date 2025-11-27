@@ -14,11 +14,14 @@ import ProfileDetails from "@/components/profile/ProfileDetails";
 import ProfileMoments from "@/components/profile/ProfileMoments";
 import ProfileCover from "@/components/profile/ProfileCover";
 import QuickActionsBar from "@/components/profile/QuickActionsBar";
+import LevelProgress from "@/components/profile/LevelProgress";
+import ShareProfileDialog from "@/components/profile/ShareProfileDialog";
 
 const Profile = () => {
   const user = AuthService.getCurrentUser();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [file, setFile] = useState<File | undefined>(undefined);
+  const [shareOpen, setShareOpen] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -39,7 +42,10 @@ const Profile = () => {
         </ProfileCover>
 
         {/* Quick actions under the cover */}
-        <QuickActionsBar className="px-1" />
+        <QuickActionsBar className="px-1" onShare={() => setShareOpen(true)} />
+
+        {/* Level Progress */}
+        <LevelProgress profile={profile} className="px-1" />
 
         {/* Stats */}
         <ProfileStats profile={profile} />
@@ -57,6 +63,8 @@ const Profile = () => {
           }
         />
       </div>
+      {/* Share Dialog */}
+      <ShareProfileDialog open={shareOpen} onOpenChange={setShareOpen} user={user} profile={profile} />
     </ChatLayout>
   );
 };

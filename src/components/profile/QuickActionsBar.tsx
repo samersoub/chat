@@ -8,9 +8,10 @@ import { showSuccess } from "@/utils/toast";
 
 type Props = {
   className?: string;
+  onShare?: () => void;
 };
 
-const QuickActionsBar: React.FC<Props> = ({ className }) => {
+const QuickActionsBar: React.FC<Props> = ({ className, onShare }) => {
   const { dir } = useLocale();
 
   const label = {
@@ -31,7 +32,7 @@ const QuickActionsBar: React.FC<Props> = ({ className }) => {
           <Gift className="mr-2 h-4 w-4" />
           {label.gift}
         </Button>
-        <Button variant="outline" size="sm" onClick={() => showSuccess(label.share)}>
+        <Button variant="outline" size="sm" onClick={() => (typeof onShare === "function" ? onShare() : showSuccess(label.share))}>
           <Share2 className="mr-2 h-4 w-4" />
           {label.share}
         </Button>
