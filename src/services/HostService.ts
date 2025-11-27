@@ -34,4 +34,18 @@ export const HostService = {
   list(): HostProfile[] {
     return readHosts();
   },
+  update(id: string, patch: Partial<HostProfile>): HostProfile {
+    const items = readHosts();
+    const idx = items.findIndex((h) => h.id === id);
+    if (idx === -1) throw new Error("Host not found");
+    const next = { ...items[idx], ...patch };
+    localStorage.setItem(HOSTS_KEY, JSON.stringify([...items.slice(0, idx), next, ...items.slice(idx + 1)]));
+    return next;
+  },
+  setVerified(id: string, verified: boolean) {
+    return this.update(id, { verified });
+  },
+  setHourlyRate(id: string, hourlyRateCoins: number) {
+    return this.update(id, { hourlyRateCoins: Math.max(0, hourlyRateCoins) });
+  },
 };

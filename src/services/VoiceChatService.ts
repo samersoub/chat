@@ -76,6 +76,21 @@ export const VoiceChatService = {
     syncUpsertRoom(room);
     return room;
   },
+  updateRoomHost(id: string, hostId: string): ChatRoom {
+    const rooms = readRooms();
+    const idx = rooms.findIndex((r) => r.id === id);
+    if (idx === -1) throw new Error("Room not found");
+    const room = rooms[idx];
+    room.hostId = hostId;
+    if (!room.participants.includes(hostId)) {
+      room.participants.push(hostId);
+    }
+    room.updatedAt = new Date().toISOString();
+    rooms[idx] = room;
+    writeRooms(rooms);
+    syncUpsertRoom(room);
+    return room;
+  },
   getRoom(id: string): ChatRoom | undefined {
     void hydrateRoomsFromDB();
     return readRooms().find(r => r.id === id);

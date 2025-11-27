@@ -75,6 +75,26 @@ export const AgencyService = {
     list[idx].approved = approved;
     write(RECHARGE_KEY, list);
   },
+  addHostAgency(agency: Omit<HostAgency, "approved"> & { approved?: boolean }) {
+    const list = this.listHostAgencies();
+    if (list.some((a) => a.id === agency.id)) throw new Error("Agency ID already exists");
+    const next: HostAgency = { ...agency, approved: agency.approved ?? false };
+    list.push(next);
+    write(HOST_KEY, list);
+    return next;
+  },
+  updateHostAgency(id: string, patch: Partial<HostAgency>) {
+    const list = this.listHostAgencies();
+    const idx = list.findIndex((a) => a.id === id);
+    if (idx === -1) throw new Error("Agency not found");
+    list[idx] = { ...list[idx], ...patch };
+    write(HOST_KEY, list);
+    return list[idx];
+  },
+  removeHostAgency(id: string) {
+    const list = this.listHostAgencies().filter((a) => a.id !== id);
+    write(HOST_KEY, list);
+  },
   hostCommissionStatement(id: string) {
     // Dummy statement totals
     return { month: "2025-11", totalHours: 320, totalGifts: 12400, commissionEarned: 1860 };
