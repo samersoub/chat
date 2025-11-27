@@ -32,12 +32,16 @@ export const EconomyService = {
   },
   saveBalance(bal: Balance) {
     write(BAL_KEY, bal);
+    // EMIT: balance updated
+    window.dispatchEvent(new CustomEvent<Balance>("economy:balance", { detail: bal }));
   },
   getInventory(): Inventory {
     return read<Inventory>(INV_KEY, { frames: [], equippedFrame: undefined, bubbles: [], entrances: [] });
   },
   saveInventory(inv: Inventory) {
     write(INV_KEY, inv);
+    // EMIT: inventory updated
+    window.dispatchEvent(new CustomEvent<Inventory>("economy:inventory", { detail: inv }));
   },
   log(tx: Transaction) {
     const logs = read<Transaction[]>(LOG_KEY, []);
