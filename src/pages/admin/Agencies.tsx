@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { HostService, type HostProfile } from "@/services/HostService";
 import { HostScheduleService, type HostSchedule } from "@/services/HostScheduleService";
 import { ActivityLogService } from "@/services/ActivityLogService";
+import { downloadCsv, toCsv } from "@/utils/csv";
 
 const AgenciesAdmin: React.FC = () => {
   const [hosts, setHosts] = useState<HostAgency[]>([]);
@@ -45,7 +46,41 @@ const AgenciesAdmin: React.FC = () => {
     <AdminLayout title="Agencies">
       <div className="flex items-center justify-between mb-3">
         <Button variant="outline" onClick={refresh}>Refresh</Button>
-        <Button onClick={() => { setAddOpen(true); setNewAgency({ id: "", name: "", ownerName: "", commission: 10, approved: false }); }}>New Host Agency</Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              const rows = hosts.map((h) => ({
+                id: h.id,
+                name: h.name,
+                ownerName: h.ownerName,
+                commission: h.commission,
+                approved: h.approved,
+              }));
+              downloadCsv("host_agencies", toCsv(rows));
+              showSuccess("Exported host agencies");
+            }}
+          >
+            Export Host Agencies
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => {
+              const rows = recharges.map((r) => ({
+                id: r.id,
+                name: r.name,
+                channel: r.channel,
+                commission: r.commission,
+                approved: r.approved,
+              }));
+              downloadCsv("recharge_agencies", toCsv(rows));
+              showSuccess("Exported recharge agencies");
+            }}
+          >
+            Export Recharge Agencies
+          </Button>
+          <Button onClick={() => { setAddOpen(true); setNewAgency({ id: "", name: "", ownerName: "", commission: 10, approved: false }); }}>New Host Agency</Button>
+        </div>
       </div>
 
       <div className="grid gap-4">

@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { HostService } from "@/services/HostService";
 import { RoomSettingsService, type RoomSettings, type RoomType } from "@/services/RoomSettingsService";
+import { downloadCsv, toCsv } from "@/utils/csv";
 
 const Rooms: React.FC = () => {
   const [rooms, setRooms] = useState(VoiceChatService.listRooms());
@@ -52,6 +53,26 @@ const Rooms: React.FC = () => {
       <div className="flex justify-between mb-3">
         <Button variant="outline" size="sm" onClick={refresh}>Refresh</Button>
         <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              const rows = rooms.map((r) => ({
+                id: r.id,
+                name: r.name,
+                hostId: r.hostId,
+                isPrivate: r.isPrivate,
+                participantsCount: r.participants?.length ?? 0,
+                createdAt: r.createdAt,
+                updatedAt: r.updatedAt,
+                description: r.description ?? "",
+              }));
+              downloadCsv("rooms", toCsv(rows));
+              showSuccess("Exported rooms to CSV");
+            }}
+          >
+            Export CSV
+          </Button>
           <Button size="sm" variant="outline" onClick={() => setBulkOpen(true)}>Bulk Create</Button>
           <Button size="sm" onClick={() => setCreateOpen(true)}>New Room</Button>
         </div>
@@ -146,6 +167,15 @@ const Rooms: React.FC = () => {
               </Select>
               <Input type="number" value={config.maxSpeakers} onChange={(e) => setConfig((c) => c ? { ...c, maxSpeakers: Math.max(1, Number(e.target.value) || 1) } : c)} />
               <Input type="number" value={config.maxListeners} onChange={(e) => setConfig((c) => c ? { ...c, maxListeners: Math.max(1, Number(e.target.value) || 1) } : c)} />
+              <Input
+                type="number"
+                value={config.moderatorsLimit}
+                onChange={(e) =>
+                  setConfig((c) =>
+                    c ? { ...c, moderatorsLimit: Math.max(1, Number(e.target.value) || 1) } : c
+                  )
+                }
+              />
             </div>
           )}
           <DialogFooter className="mt-3">
