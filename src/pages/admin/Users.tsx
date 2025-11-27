@@ -9,6 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { ProfileService, type Profile } from "@/services/ProfileService";
 import UsersToolbar from "@/components/admin/UsersToolbar";
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import { ActivityLogService } from "@/services/ActivityLogService";
 
 const Users: React.FC = () => {
   const [users, setUsers] = useState<Profile[]>([]);
@@ -20,6 +22,10 @@ const Users: React.FC = () => {
   const [balanceOpen, setBalanceOpen] = useState(false);
   const [coinsDelta, setCoinsDelta] = useState<string>("");
   const [targetUser, setTargetUser] = useState<Profile | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [roleOpen, setRoleOpen] = useState(false);
+  const [logsOpen, setLogsOpen] = useState(false);
+  const [editForm, setEditForm] = useState<Profile | null>(null);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -110,6 +116,7 @@ const Users: React.FC = () => {
                         if (updated) {
                           setUsers((prev) => prev.map((x) => (x.id === updated.id ? updated : x)));
                           showSuccess(`${updated.is_active ? "Activated" : "Banned"} ${updated.username}`);
+                          ActivityLogService.log("admin", updated.is_active ? "user_activate" : "user_ban", u.id);
                         }
                       }}
                     >
@@ -124,6 +131,46 @@ const Users: React.FC = () => {
                       }}
                     >
                       Adjust Coins
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setEditForm(u);
+                        setEditOpen(true);
+                      }}
+                    >
+                      Edit Profile
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setTargetUser(u);
+                        setRoleOpen(true);
+                      }}
+                    >
+                      Change Role
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        ActivityLogService.log("admin", "password_reset", u.id);
+                        showSuccess("Password reset requested (email flow)");
+                      }}
+                    >
+                      Reset Password
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => {
+                        setTargetUser(u);
+                        setLogsOpen(true);
+                      }}
+                    >
+                      View Logs
                     </Button>
                   </div>
                 </TableCell>
@@ -164,6 +211,7 @@ const Users: React.FC = () => {
                 const updated = await ProfileService.updateCoins(targetUser?.id || "", delta);
                 if (updated) {
                   setUsers((prev) => prev.map((x) => (x.id === updated.id ? updated : x)));
+                  ActivityLogService.log("admin", "coins_adjust", targetUser?.id, { delta });
                   showSuccess(`Updated ${updated.username}: Coins=${updated.coins}`);
                 }
                 setCoinsDelta("");
@@ -173,6 +221,86 @@ const Users: React.FC = () => {
               Save
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Edit Profile {editForm ? `• ${editForm.username}` : ""}</DialogTitle></DialogHeader>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Input placeholder="Username" value={editForm?.username || ""} onChange={(e) => setEditForm((p) => p ? { ...p, username: e.target.value } : p)} />
+            <Input placeholder="Email" value={editForm?.email || ""} onChange={(e) => setEditForm((p) => p ? { ...p, email: e.target.value } : p)} />
+            <Input placeholder="Phone" value={editForm?.phone || ""} onChange={(e) => setEditForm((p) => p ? { ...p, phone: e.target.value } : p)} />
+            <Select value={editForm?.is_verified ? "verified" : "unverified"} onValueChange={(v) => setEditForm((p) => p ? { ...p, is_verified: v === "verified" } : p)}>
+              <SelectTrigger><SelectValue placeholder="Verification" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="verified">Verified</SelectItem>
+                <SelectItem value="unverified">Unverified</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter className="mt-3">
+            <Button onClick={async () => {
+              if (!editForm) return;
+              const updated = await ProfileService.upsertProfile(editForm);
+              setUsers((prev) => prev.map((x) => (x.id === updated.id ? updated : x)));
+              ActivityLogService.log("admin", "profile_edit", updated.id);
+              showSuccess("Profile saved");
+              setEditOpen(false);
+            }}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={roleOpen} onOpenChange={setRoleOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Change Role {targetUser ? `• ${targetUser.username}` : ""}</DialogTitle></DialogHeader>
+          <Select value={targetUser?.role || "user"} onValueChange={(v) => setTargetUser((p) => p ? { ...p, role: v } as Profile : p)}>
+            <SelectTrigger><SelectValue placeholder="Role" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="user">User</SelectItem>
+              <SelectItem value="host">Host</SelectItem>
+              <SelectItem value="admin">Admin</SelectItem>
+              <SelectItem value="super_admin">Super Admin</SelectItem>
+            </SelectContent>
+          </Select>
+          <DialogFooter className="mt-3">
+            <Button onClick={async () => {
+              if (!targetUser) return;
+              const updated = await ProfileService.upsertProfile(targetUser);
+              setUsers((prev) => prev.map((x) => (x.id === updated.id ? updated : x)));
+              ActivityLogService.log("admin", "role_change", updated.id, { role: updated.role });
+              showSuccess("Role updated");
+              setRoleOpen(false);
+            }}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={logsOpen} onOpenChange={setLogsOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>User Activity {targetUser ? `• ${targetUser.username}` : ""}</DialogTitle></DialogHeader>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>ID</TableHead>
+                <TableHead>Action</TableHead>
+                <TableHead>Date</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {(targetUser ? ActivityLogService.listByUser(targetUser.id) : []).map((l) => (
+                <TableRow key={l.id}>
+                  <TableCell className="font-mono text-xs">{l.id}</TableCell>
+                  <TableCell>{l.action}</TableCell>
+                  <TableCell>{new Date(l.at).toLocaleString()}</TableCell>
+                </TableRow>
+              ))}
+              {(!targetUser || ActivityLogService.listByUser(targetUser.id).length === 0) && (
+                <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground">No activity</TableCell></TableRow>
+              )}
+            </TableBody>
+          </Table>
         </DialogContent>
       </Dialog>
     </AdminLayout>

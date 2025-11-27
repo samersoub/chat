@@ -20,6 +20,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Activity, BarChart3, Home, Users, Mic, FileChartColumn, Settings } from "lucide-react";
 import { Image as ImageIcon, Building2 } from "lucide-react";
+import { Gift, Coins } from "lucide-react";
+import { AuthService } from "@/services/AuthService";
+import { ProfileService } from "@/services/ProfileService";
+import { showError } from "@/utils/toast";
 
 const AdminLayout: React.FC<{ children: React.ReactNode; title?: string }> = ({ children, title = "Admin" }) => {
   const loc = useLocation();
@@ -30,7 +34,19 @@ const AdminLayout: React.FC<{ children: React.ReactNode; title?: string }> = ({ 
     const token = localStorage.getItem("admin:token");
     if (!token) {
       nav("/admin/login");
+      return;
     }
+    // RBAC: allow admin or super_admin
+    const u = AuthService.getCurrentUser();
+    if (!u) return;
+    (async () => {
+      const prof = await ProfileService.getByUserId(u.id);
+      const role = prof?.role || "user";
+      if (!["admin", "super_admin"].includes(role)) {
+        showError("Access denied: admin only");
+        nav("/");
+      }
+    })();
   }, [nav]);
 
   return (
@@ -85,6 +101,16 @@ const AdminLayout: React.FC<{ children: React.ReactNode; title?: string }> = ({ 
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={is("/admin/settings")}>
                     <Link to="/admin/settings"><Settings /> Settings</Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={is("/admin/gifts")}>
+                    <Link to="/admin/gifts"><Gift /> Gifts</Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={is("/admin/coins")}>
+                    <Link to="/admin/coins"><Coins /> Coins</Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>

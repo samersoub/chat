@@ -26,6 +26,8 @@ import AdminSettings from "./pages/admin/Settings";
 import AdminStatus from "./pages/admin/Status";
 import BannersAdmin from "./pages/admin/Banners";
 import AgenciesAdmin from "./pages/admin/Agencies";
+import GiftsAdmin from "./pages/admin/Gifts";
+import CoinsAdmin from "./pages/admin/Coins";
 import Wallet from "./pages/finance/Wallet";
 import HostAgency from "./pages/agency/HostAgency";
 import RechargeAgency from "./pages/agency/RechargeAgency";
@@ -65,6 +67,8 @@ const App = () => (
             <Route path="/admin/agencies" element={<AgenciesAdmin />} />
             <Route path="/admin/banners" element={<BannersAdmin />} />
             <Route path="/admin/settings" element={<AdminSettings />} />
+            <Route path="/admin/gifts" element={<GiftsAdmin />} />
+            <Route path="/admin/coins" element={<CoinsAdmin />} />
             {/* Auth */}
             <Route path="/auth/login" element={<Login />} />
             <Route path="/auth/register" element={<Register />} />
