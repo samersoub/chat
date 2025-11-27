@@ -126,7 +126,8 @@ const VoiceChat = () => {
 
   // Join TRTC test room and publish local audio
   const handleJoinTRTC = async () => {
-    const currentUserID = "samers_test_user_1";
+    // Use the authenticated user's ID if available; fallback to a simple anon ID
+    const currentUserID = user?.id || "anon_test_user";
     try {
       const userSig = await fetchUserSig(currentUserID);
 
