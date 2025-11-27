@@ -10,18 +10,24 @@ import { Input } from "@/components/ui/input";
 import { ProfileService, type Profile } from "@/services/ProfileService";
 import UsersToolbar from "@/components/admin/UsersToolbar";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import { downloadCsv, toCsv } from "@/utils/csv";
 import { ActivityLogService } from "@/services/ActivityLogService";
 
 const Users: React.FC = () => {
   const [users, setUsers] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState<"all" | "active" | "banned">("all");
-
   const [balanceOpen, setBalanceOpen] = useState(false);
   const [coinsDelta, setCoinsDelta] = useState<string>("");
   const [targetUser, setTargetUser] = useState<Profile | null>(null);
+  const [q, setQ] = useState<string>("");
+  const [status, setStatus] = useState<"all" | "active" | "banned">("all");
+  const [role, setRole] = useState<"all" | "user" | "host" | "admin" | "super_admin">("all");
+  const [minCoins, setMinCoins] = useState<string>("");
+  const [maxCoins, setMaxCoins] = useState<string>("");
+  const [fromDate, setFromDate] = useState<string>("");
+  const [toDate, setToDate] = useState<string>("");
+
   const [editOpen, setEditOpen] = useState(false);
   const [roleOpen, setRoleOpen] = useState(false);
   const [logsOpen, setLogsOpen] = useState(false);
@@ -43,18 +49,22 @@ const Users: React.FC = () => {
     void fetchUsers();
   }, []);
 
-  const filtered = useMemo(() => {
-    const s = search.trim().toLowerCase();
-    return users.filter((u) => {
-      const matches = !s || (u.username?.toLowerCase().includes(s) || u.email?.toLowerCase().includes(s) || u.phone?.toLowerCase().includes(s));
-      const statusOk = status === "all" ? true : status === "active" ? u.is_active : !u.is_active;
-      return matches && statusOk;
-    });
-  }, [users, search, status]);
+  const filteredUsers = users.filter((u) => {
+    const text = `${u.username} ${u.email} ${u.phone}`.toLowerCase();
+    const matchesQ = q ? text.includes(q.toLowerCase()) : true;
+    const matchesStatus = status === "all" ? true : status === "active" ? u.is_active : !u.is_active;
+    const matchesRole = role === "all" ? true : u.role === role;
+    const matchesMin = minCoins ? (u.coins || 0) >= Number(minCoins) : true;
+    const matchesMax = maxCoins ? (u.coins || 0) <= Number(maxCoins) : true;
+    const created = u.created_at ? new Date(u.created_at).getTime() : 0;
+    const matchesFrom = fromDate ? created >= new Date(fromDate).getTime() : true;
+    const matchesTo = toDate ? created <= new Date(toDate).getTime() : true;
+    return matchesQ && matchesStatus && matchesRole && matchesMin && matchesMax && matchesFrom && matchesTo;
+  });
 
   const exportCSV = () => {
     const header = ["id","username","email","phone","coins","is_active","is_verified","created_at","last_login"];
-    const rows = filtered.map((u) => [
+    const rows = filteredUsers.map((u) => [
       u.id, u.username, u.email, u.phone, String(u.coins ?? 0), String(u.is_active), String(u.is_verified), u.created_at, u.last_login || ""
     ]);
     const csv = [header.join(","), ...rows.map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","))].join("\n");
@@ -71,14 +81,73 @@ const Users: React.FC = () => {
   return (
     <AdminLayout title="Users">
       <UsersToolbar
-        search={search}
-        onSearchChange={setSearch}
+        search={q}
+        onSearchChange={setQ}
         status={status}
         onStatusChange={setStatus}
         onRefresh={fetchUsers}
         onExport={exportCSV}
-        total={filtered.length}
+        total={filteredUsers.length}
       />
+
+      <div className="mb-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+        <Input placeholder="Search name/email/phone" value={q} onChange={(e) => setQ(e.target.value)} />
+        <Select value={status} onValueChange={(v) => setStatus(v as typeof status)}>
+          <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All</SelectItem>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="banned">Banned</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={role} onValueChange={(v) => setRole(v as typeof role)}>
+          <SelectTrigger><SelectValue placeholder="Role" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All</SelectItem>
+            <SelectItem value="user">User</SelectItem>
+            <SelectItem value="host">Host</SelectItem>
+            <SelectItem value="admin">Admin</SelectItem>
+            <SelectItem value="super_admin">Super Admin</SelectItem>
+          </SelectContent>
+        </Select>
+        <div className="flex gap-2">
+          <Input type="number" placeholder="Min coins" value={minCoins} onChange={(e) => setMinCoins(e.target.value)} />
+          <Input type="number" placeholder="Max coins" value={maxCoins} onChange={(e) => setMaxCoins(e.target.value)} />
+        </div>
+        <div className="flex gap-2 sm:col-span-2">
+          <Input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
+          <Input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} />
+        </div>
+        <div className="flex gap-2 sm:col-span-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              setQ(""); setStatus("all"); setRole("all"); setMinCoins(""); setMaxCoins(""); setFromDate(""); setToDate("");
+            }}
+          >
+            Clear Filters
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => {
+              const rows = filteredUsers.map((u) => ({
+                id: u.id,
+                username: u.username,
+                email: u.email,
+                phone: u.phone,
+                role: u.role,
+                coins: u.coins,
+                is_active: u.is_active,
+                is_verified: u.is_verified,
+                created_at: u.created_at,
+              }));
+              downloadCsv("users_export", toCsv(rows));
+            }}
+          >
+            Export CSV
+          </Button>
+        </div>
+      </div>
 
       <div className="bg-card rounded-lg border">
         <Table>
@@ -96,7 +165,7 @@ const Users: React.FC = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.map((u) => (
+            {filteredUsers.map((u) => (
               <TableRow key={u.id}>
                 <TableCell className="font-mono text-xs">{u.id}</TableCell>
                 <TableCell>{u.username}</TableCell>
@@ -176,7 +245,7 @@ const Users: React.FC = () => {
                 </TableCell>
               </TableRow>
             ))}
-            {filtered.length === 0 && (
+            {filteredUsers.length === 0 && (
               <TableRow>
                 <TableCell colSpan={9} className="text-center text-muted-foreground">
                   {loading ? "Loading..." : "No users found"}

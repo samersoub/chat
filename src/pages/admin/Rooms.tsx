@@ -24,6 +24,11 @@ const Rooms: React.FC = () => {
   const [assignOpen, setAssignOpen] = useState(false);
   const [assignRoomId, setAssignRoomId] = useState<string>("");
   const [assignHostId, setAssignHostId] = useState<string>("");
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkCount, setBulkCount] = useState<string>("1");
+  const [bulkBase, setBulkBase] = useState<string>("");
+  const [bulkPrivacy, setBulkPrivacy] = useState<"public" | "private">("public");
+  const [bulkHostId, setBulkHostId] = useState<string>("");
 
   const refresh = () => setRooms(VoiceChatService.listRooms());
 
@@ -46,7 +51,10 @@ const Rooms: React.FC = () => {
     <AdminLayout title="Rooms">
       <div className="flex justify-between mb-3">
         <Button variant="outline" size="sm" onClick={refresh}>Refresh</Button>
-        <Button size="sm" onClick={() => setCreateOpen(true)}>New Room</Button>
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="outline" onClick={() => setBulkOpen(true)}>Bulk Create</Button>
+          <Button size="sm" onClick={() => setCreateOpen(true)}>New Room</Button>
+        </div>
       </div>
       <div className="grid gap-3">
         {rooms.length === 0 && <div className="text-muted-foreground">No active rooms.</div>}
@@ -173,6 +181,48 @@ const Rooms: React.FC = () => {
               setAssignOpen(false);
               refresh();
             }}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Create Rooms */}
+      <Dialog open={bulkOpen} onOpenChange={setBulkOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Bulk Create Rooms</DialogTitle></DialogHeader>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Input placeholder="Base name (e.g., 'Party Room')" value={bulkBase} onChange={(e) => setBulkBase(e.target.value)} />
+            <Input type="number" placeholder="Count" value={bulkCount} onChange={(e) => setBulkCount(e.target.value)} />
+            <Select value={bulkPrivacy} onValueChange={(v) => setBulkPrivacy(v as "public" | "private")}>
+              <SelectTrigger><SelectValue placeholder="Privacy" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="public">Public</SelectItem>
+                <SelectItem value="private">Private</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={bulkHostId} onValueChange={setBulkHostId}>
+              <SelectTrigger><SelectValue placeholder="Host (optional)" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">None</SelectItem>
+                {HostService.list().map((h) => <SelectItem key={h.id} value={h.id}>{h.name} ({h.id})</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter className="mt-3">
+            <Button onClick={() => {
+              const n = Math.max(1, Number(bulkCount) || 1);
+              if (!bulkBase) {
+                showError("Enter base name");
+                return;
+              }
+              for (let i = 1; i <= n; i++) {
+                const name = `${bulkBase} ${i}`;
+                const hostId = bulkHostId || crypto.randomUUID();
+                VoiceChatService.createRoom(name, bulkPrivacy === "private", hostId);
+              }
+              showSuccess(`Created ${n} rooms`);
+              setBulkOpen(false);
+              refresh();
+            }}>Create</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { showError, showSuccess } from "@/utils/toast";
@@ -18,6 +19,8 @@ const CoinsAdmin: React.FC = () => {
   const [users, setUsers] = useState<Profile[]>([]);
   const [targetId, setTargetId] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
+  const [bulkIds, setBulkIds] = useState<string>("");
+  const [bulkAmount, setBulkAmount] = useState<string>("");
 
   const [packages, setPackages] = useState<CoinPackage[]>(CoinPackageService.list());
   const [rate, setRate] = useState(CoinPackageService.getRate());
@@ -51,6 +54,27 @@ const CoinsAdmin: React.FC = () => {
     } else {
       showError("User not found");
     }
+  };
+
+  const distributeCoins = async () => {
+    const ids = bulkIds.split(/[,\s]+/).map((s) => s.trim()).filter(Boolean);
+    const amt = parseInt(bulkAmount || "0", 10);
+    if (ids.length === 0 || !Number.isFinite(amt) || amt <= 0) {
+      showError("Provide at least one user ID and a positive amount");
+      return;
+    }
+    let success = 0;
+    for (const id of ids) {
+      const updated = await ProfileService.updateCoins(id, amt);
+      if (updated) {
+        success++;
+        ActivityLogService.log("admin", "coins_mass_send", id, { amount: amt });
+        setUsers((prev) => prev.map((x) => (x.id === updated.id ? updated : x)));
+      }
+    }
+    showSuccess(`Distributed ${amt} coins to ${success}/${ids.length} users`);
+    setBulkIds("");
+    setBulkAmount("");
   };
 
   const savePackage = () => {
@@ -100,6 +124,18 @@ const CoinsAdmin: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+
+      <Card className="mt-4">
+        <CardHeader><CardTitle>Mass Coin Distribution</CardTitle></CardHeader>
+        <CardContent className="space-y-2">
+          <Textarea placeholder="Enter user IDs separated by commas or whitespace" value={bulkIds} onChange={(e) => setBulkIds(e.target.value)} />
+          <Input type="number" placeholder="Coins per user" value={bulkAmount} onChange={(e) => setBulkAmount(e.target.value)} />
+          <Button onClick={() => void distributeCoins()}>Distribute Coins</Button>
+          <div className="text-xs text-muted-foreground">
+            Tip: Paste a list like "u1, u2, u3" or multiline IDs.
+          </div>
+        </CardContent>
+      </Card>
 
       <Card className="mt-4">
         <CardHeader className="flex items-center justify-between">

@@ -12,6 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { GiftAdminService, type AdminGift, type GiftCategory } from "@/services/GiftAdminService";
 import { EconomyService } from "@/services/EconomyService";
 import { showError, showSuccess } from "@/utils/toast";
+import { downloadCsv, toCsv } from "@/utils/csv";
 
 const categories: GiftCategory[] = ["basic", "premium", "vip"];
 
@@ -109,8 +110,85 @@ const GiftsAdmin: React.FC = () => {
           </Select>
           <Button variant="outline" onClick={() => setItems(GiftAdminService.list())}>Refresh</Button>
         </div>
-        <Button onClick={startCreate}>New Gift</Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              const rows = items.map((g) => ({
+                id: g.id,
+                name: g.name,
+                price: g.price,
+                category: g.category,
+                is_active: g.is_active,
+                image_url: g.image_url ?? "",
+                animation_url: g.animation_url ?? "",
+                limit_perUserPerDay: g.limitation?.perUserPerDay ?? "",
+              }));
+              downloadCsv("gifts", toCsv(rows));
+              showSuccess("Exported gifts to CSV");
+            }}
+          >
+            Export CSV
+          </Button>
+          <Button onClick={startCreate}>New Gift</Button>
+        </div>
       </div>
+
+      <Card className="mb-4">
+        <CardHeader><CardTitle>Batch Import Gifts (CSV)</CardTitle></CardHeader>
+        <CardContent className="space-y-2">
+          <div className="text-xs text-muted-foreground">Columns: id,name,price,category,image_url,animation_url,is_active,limit_perUserPerDay</div>
+          <Input
+            type="file"
+            accept=".csv,text/csv"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              const reader = new FileReader();
+              reader.onload = () => {
+                try {
+                  const text = String(reader.result || "");
+                  const [headerLine, ...lines] = text.trim().split(/\r?\n/);
+                  const headers = headerLine.split(",").map((h) => h.trim());
+                  const get = (row: Record<string, string>, k: string) => row[k] || "";
+                  const created: AdminGift[] = [];
+                  lines.forEach((line) => {
+                    const cols = line.split(",").map((c) => c.trim());
+                    const row: Record<string, string> = {};
+                    headers.forEach((h, i) => (row[h] = cols[i] ?? ""));
+                    const g: Omit<AdminGift, "created_at"> = {
+                      id: get(row, "id"),
+                      name: get(row, "name"),
+                      price: Number(get(row, "price") || "0"),
+                      category: (get(row, "category") || "basic") as GiftCategory,
+                      is_active: String(get(row, "is_active") || "true").toLowerCase() === "true",
+                      image_url: get(row, "image_url") || undefined,
+                      animation_url: get(row, "animation_url") || undefined,
+                      limitation: { perUserPerDay: get(row, "limit_perUserPerDay") ? Number(get(row, "limit_perUserPerDay")) : undefined },
+                    };
+                    if (!g.id || !g.name) return;
+                    try {
+                      const added = GiftAdminService.add(g);
+                      created.push(added);
+                    } catch {
+                      // skip duplicates
+                    }
+                  });
+                  if (created.length > 0) {
+                    setItems(GiftAdminService.list());
+                    showSuccess(`Imported ${created.length} gifts`);
+                  } else {
+                    showError("No gifts imported");
+                  }
+                } catch {
+                  showError("Failed to parse CSV");
+                }
+              };
+              reader.readAsText(file);
+            }}
+          />
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader><CardTitle>Gift Shop Administration</CardTitle></CardHeader>
