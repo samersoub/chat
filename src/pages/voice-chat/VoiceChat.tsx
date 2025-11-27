@@ -133,6 +133,8 @@ const VoiceChat = () => {
       const client = TRTC.createClient({
         mode: "rtc",
         sdkAppId: TRTC_SDK_APP_ID,
+        userId: currentUserID,
+        userSig,
       });
       trtcClientRef.current = client;
 
@@ -154,8 +156,6 @@ const VoiceChat = () => {
 
       await client.join({
         roomId: TRTC_TEST_ROOM_ID,
-        userId: currentUserID,
-        userSig,
       });
       console.log("TRTC: Join Success");
       showSuccess("Joined TRTC test room");
