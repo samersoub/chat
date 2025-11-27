@@ -17,12 +17,14 @@ import QuickActionsBar from "@/components/profile/QuickActionsBar";
 import LevelProgress from "@/components/profile/LevelProgress";
 import ShareProfileDialog from "@/components/profile/ShareProfileDialog";
 import FrameSelector from "@/components/profile/FrameSelector";
+import MomentsUploader from "@/components/profile/MomentsUploader";
 
 const Profile = () => {
   const user = AuthService.getCurrentUser();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [file, setFile] = useState<File | undefined>(undefined);
   const [shareOpen, setShareOpen] = useState(false);
+  const [photos, setPhotos] = useState<string[]>([]);
 
   useEffect(() => {
     const load = async () => {
@@ -57,7 +59,12 @@ const Profile = () => {
         {/* Tabs: Moments & Personal Profile */}
         <ProfileTabs
           defaultValue="moments"
-          momentsSlot={<ProfileMoments photos={[]} />}
+          momentsSlot={
+            <div className="space-y-4">
+              <MomentsUploader onAddPhotos={(urls) => setPhotos((prev) => [...urls, ...prev])} />
+              <ProfileMoments photos={photos} />
+            </div>
+          }
           detailsSlot={
             <ProfileDetails
               user={user}
