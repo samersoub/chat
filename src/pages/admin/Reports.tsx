@@ -15,6 +15,7 @@ import { MusicService } from "@/services/MusicService";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { Flame, VolumeX, UserMinus, Music2 } from "lucide-react";
+import { downloadCsv, toCsv } from "@/utils/csv";
 
 // ADDED: helpers to scan rooms with reports
 function scanRoomsWithReports(): string[] {
@@ -209,6 +210,42 @@ const Reports: React.FC = () => {
                   <Line type="monotone" dataKey="gifts" stroke="#F59E0B" strokeWidth={2} />
                 </LineChart>
               </ResponsiveContainer>
+              <div className="mt-3 flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    const logs = EconomyService.getLogs().filter((l) => l.type === "gift");
+                    const rows = logs.map((l) => ({
+                      id: l.id,
+                      amount: l.amount,
+                      giftId: l.meta?.giftId,
+                      senderUid: l.meta?.senderUid,
+                      receiverUid: l.meta?.receiverUid,
+                      at: new Date(l.at).toISOString(),
+                    }));
+                    downloadCsv("gift_stats", toCsv(rows));
+                    showSuccess("Exported gift statistics");
+                  }}
+                >
+                  Export Gift Stats (CSV)
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    const logs = EconomyService.getLogs().filter((l) => l.type === "recharge");
+                    const rows = logs.map((l) => ({
+                      id: l.id,
+                      amount: l.amount,
+                      channel: l.meta?.channel,
+                      at: new Date(l.at).toISOString(),
+                    }));
+                    downloadCsv("recharges", toCsv(rows));
+                    showSuccess("Exported recharge logs");
+                  }}
+                >
+                  Export Recharges (CSV)
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

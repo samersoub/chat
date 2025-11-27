@@ -6,6 +6,8 @@ import StatsCards from "@/components/admin/StatsCards";
 import { Button } from "@/components/ui/button";
 import { showError } from "@/utils/toast";
 import { ProfileService, type Profile } from "@/services/ProfileService";
+import LiveStats from "@/components/admin/LiveStats";
+import ActivityFeed from "@/components/admin/ActivityFeed";
 
 const Dashboard: React.FC = () => {
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -36,6 +38,12 @@ const Dashboard: React.FC = () => {
         </Button>
       </div>
       <StatsCards profiles={profiles} />
+      <div className="mt-4">
+        <LiveStats />
+      </div>
+      <div className="mt-4">
+        <ActivityFeed />
+      </div>
     </AdminLayout>
   );
 };
