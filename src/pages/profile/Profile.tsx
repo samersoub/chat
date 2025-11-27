@@ -16,6 +16,7 @@ import ProfileCover from "@/components/profile/ProfileCover";
 import QuickActionsBar from "@/components/profile/QuickActionsBar";
 import LevelProgress from "@/components/profile/LevelProgress";
 import ShareProfileDialog from "@/components/profile/ShareProfileDialog";
+import FrameSelector from "@/components/profile/FrameSelector";
 
 const Profile = () => {
   const user = AuthService.getCurrentUser();
@@ -46,6 +47,9 @@ const Profile = () => {
 
         {/* Level Progress */}
         <LevelProgress profile={profile} className="px-1" />
+
+        {/* Frames store and equip */}
+        <FrameSelector className="px-1" />
 
         {/* Stats */}
         <ProfileStats profile={profile} />
